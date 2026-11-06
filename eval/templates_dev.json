@@ -1,0 +1,212 @@
+[
+ {
+  "id": "D01",
+  "template": "t_var_es_book_last",
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book='TAUX_EUR' AND date=(SELECT max(date) FROM v_risque_book)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D02",
+  "template": "t_pnl_total_entity",
+  "sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE desk='Taux' AND date BETWEEN DATE '2026-10-01' AND DATE '2026-10-31'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D03",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D04",
+  "template": "t_days_over_limit",
+  "sql": "SELECT count(*) FROM v_limites WHERE book='FX_SPOT' AND utilisation_pct>80",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D05",
+  "template": "t_var_breaches",
+  "sql": "SELECT book, count(*) FROM v_risque_book WHERE depassement_var GROUP BY book",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D06",
+  "template": "t_rate_last",
+  "sql": "SELECT valeur FROM v_marche WHERE serie='EUR_10Y' AND date=(SELECT max(date) FROM v_marche)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D07",
+  "template": "t_pnl_by",
+  "sql": "SELECT book, sum(pnl_eur) FROM v_pnl GROUP BY book",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D08",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D09",
+  "template": "t_positions_trader",
+  "sql": "SELECT count(DISTINCT position_id) FROM v_positions WHERE trader='Martin' AND date=(SELECT max(date) FROM v_positions)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D10",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D11",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D12",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D13",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D14",
+  "template": "t_pnl_total_entity",
+  "sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE trader='Dubois'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D15",
+  "template": "t_rate_day",
+  "sql": "SELECT valeur FROM v_marche WHERE serie='EURUSD' AND date=DATE '2026-09-15'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "D16",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D17",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D18",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D19",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D20",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D21",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D22",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D23",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D24",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D25",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D26",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D27",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D28",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D29",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "D30",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ }
+]

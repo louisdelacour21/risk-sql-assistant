@@ -1,0 +1,492 @@
+[
+ {
+  "id": "T01",
+  "template": "t_var_es_book_last",
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book='FX_SPOT' AND date=(SELECT max(date) FROM v_risque_book)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T02",
+  "template": "t_var_es_book_last",
+  "sql": "SELECT es975_1j_eur FROM v_risque_book WHERE book='TAUX_USD' AND date=(SELECT max(date) FROM v_risque_book)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T03",
+  "template": "t_pnl_total_entity",
+  "sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE desk='Change' AND date BETWEEN DATE '2026-09-01' AND DATE '2026-09-30'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T04",
+  "template": "t_pnl_total_entity",
+  "sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE book='TAUX_USD' AND date BETWEEN DATE '2026-08-01' AND DATE '2026-08-31'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T05",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T06",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T07",
+  "template": "t_days_over_limit",
+  "sql": "SELECT count(*) FROM v_limites WHERE book='TAUX_EUR' AND utilisation_pct>80",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T08",
+  "template": "t_days_over_limit",
+  "sql": "SELECT count(*) FROM v_limites WHERE book='TAUX_USD' AND utilisation_pct>90",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T09",
+  "template": "t_var_breaches",
+  "sql": "SELECT count(*) FROM v_risque_book WHERE book='FX_SPOT' AND depassement_var",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T10",
+  "template": "t_var_breaches",
+  "sql": "SELECT count(*) FROM v_risque_book WHERE depassement_var",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T11",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T12",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T13",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T14",
+  "template": "t_positions_trader",
+  "sql": "SELECT count(DISTINCT position_id) FROM v_positions WHERE trader='Thomas' AND date=(SELECT max(date) FROM v_positions)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T15",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T16",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T17",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T18",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T19",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T20",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T21",
+  "template": "t_pnl_by",
+  "sql": "SELECT trader, sum(pnl_eur) FROM v_pnl GROUP BY trader",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T22",
+  "template": "t_pnl_by",
+  "sql": "SELECT desk, sum(pnl_eur) FROM v_pnl GROUP BY desk",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T23",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T24",
+  "template": "t_avg_by_book",
+  "sql": "SELECT book, max(var99_1j_eur) FROM v_risque_book GROUP BY book",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T25",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T26",
+  "template": "t_limit_usage_last",
+  "sql": "SELECT utilisation_pct FROM v_limites WHERE book='FX_SPOT' AND date=(SELECT max(date) FROM v_limites)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T27",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T28",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T29",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T30",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T31",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T32",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T33",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T34",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T35",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T36",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T37",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T38",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T39",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T40",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T41",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T42",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T43",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T44",
+  "template": "t_rate_last",
+  "sql": "SELECT valeur FROM v_marche WHERE serie='EUR_5Y' AND date=(SELECT max(date) FROM v_marche)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T45",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T46",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T47",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T48",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T49",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T50",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T51",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T52",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T53",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T54",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T55",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T56",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T57",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T58",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T59",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T60",
+  "template": "t_var_es_book_day",
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book='TAUX_EUR' AND date=DATE '2026-09-30'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T61",
+  "template": "t_var_es_book_day",
+  "sql": "SELECT es975_1j_eur FROM v_risque_book WHERE book='FX_SPOT' AND date=DATE '2026-10-15'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T62",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T63",
+  "template": "t_rate_day",
+  "sql": "SELECT valeur FROM v_marche WHERE serie='EURUSD' AND date=DATE '2026-09-02'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "T64",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T65",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T66",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T67",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T68",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T69",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "T70",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ }
+]
