@@ -1,0 +1,50 @@
+# Semantic catalogue: what the model may query. Anything not listed here is rejected by the guard.
+reference_date: "2026-10-30"   # max(date) of the frozen database; current_date is forbidden
+views:
+  v_positions:
+    description: Daily positions (one row per position and business day).
+    columns:
+      date: [DATE, "Business day"]
+      desk: [VARCHAR, "Desk: Taux or Change"]
+      book: [VARCHAR, "Book: TAUX_EUR, TAUX_USD, FX_SPOT (Taux desk has the first two, Change desk has FX_SPOT)"]
+      trader: [VARCHAR, "Trader name"]
+      position_id: [VARCHAR, "Position identifier"]
+      instrument: [VARCHAR, "Instrument, e.g. IRS 10Y or EURUSD spot"]
+      devise: [VARCHAR, "Currency of the position: EUR or USD"]
+      notionnel: [DOUBLE, "Signed notional in the position currency"]
+      dv01_eur: [DOUBLE, "Signed DV01 in EUR (rate sensitivity to 1 bp), 0 for FX positions"]
+      delta_fx_eur: [DOUBLE, "FX delta in EUR, 0 for rate positions"]
+  v_pnl:
+    description: Daily P&L per position (first-order, by sensitivities).
+    columns:
+      date: [DATE, "Business day"]
+      desk: [VARCHAR, "Desk"]
+      book: [VARCHAR, "Book"]
+      trader: [VARCHAR, "Trader"]
+      pnl_eur: [DOUBLE, "Daily P&L in EUR"]
+  v_risque_book:
+    description: Daily risk per book.
+    columns:
+      date: [DATE, "Business day"]
+      book: [VARCHAR, "Book"]
+      var99_1j_eur: [DOUBLE, "Historical VaR 99% 1 day in EUR (positive number)"]
+      es975_1j_eur: [DOUBLE, "Historical expected shortfall 97.5% 1 day in EUR (positive number)"]
+      pnl_eur: [DOUBLE, "Daily P&L of the book in EUR"]
+      depassement_var: [BOOLEAN, "True when the loss exceeded the VaR (VaR exception)"]
+  v_limites:
+    description: Daily VaR limit usage per book.
+    columns:
+      date: [DATE, "Business day"]
+      book: [VARCHAR, "Book"]
+      var99_1j_eur: [DOUBLE, "VaR 99% 1 day in EUR"]
+      limite_eur: [DOUBLE, "VaR limit of the book in EUR"]
+      utilisation_pct: [DOUBLE, "VaR / limit in percent (100 = limit reached)"]
+  v_marche:
+    description: Daily synthetic market series (rates in percent, EUR/USD).
+    columns:
+      date: [DATE, "Business day"]
+      serie: [VARCHAR, "Series code: EUR_2Y, EUR_5Y, EUR_10Y, USD_2Y, USD_5Y, USD_10Y, EURUSD"]
+      libelle: [VARCHAR, "Label"]
+      unite: [VARCHAR, "Unit"]
+      valeur: [DOUBLE, "Value"]
+functions: [sum, avg, min, max, count, abs, round, coalesce, nullif, lag, lead, row_number, rank, dense_rank, median, stddev, stddev_samp, quantile_cont, percentile_cont, cast, date_trunc, strftime, year, month, day, least, greatest, ceil, floor, sqrt, ln, exp, power, if, ifnull, first, last, arg_max, arg_min, count_star, sum_if, time_to_str, str_to_date, ts_or_ds_to_date, quantile, date_diff, datediff]

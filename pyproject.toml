@@ -1,0 +1,11 @@
+[project]
+name = "risk-sql-assistant"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["duckdb>=1.1", "sqlglot>=25", "pyyaml", "pandas", "numpy", "pydantic", "rapidfuzz", "dateparser", "ollama", "statsmodels", "streamlit", "altair"]
+[project.optional-dependencies]
+dev = ["pytest"]
+[tool.setuptools.package-data]
+risksql = ["catalog.yaml"]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
