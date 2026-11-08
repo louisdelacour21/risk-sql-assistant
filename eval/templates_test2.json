@@ -1,0 +1,422 @@
+[
+ {
+  "id": "U01",
+  "template": "t_var_es_book_last",
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book='TAUX_USD' AND date=(SELECT max(date) FROM v_risque_book)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U02",
+  "template": "t_var_es_book_day",
+  "sql": "SELECT es975_1j_eur FROM v_risque_book WHERE book='TAUX_EUR' AND date=DATE '2026-09-15'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U03",
+  "template": "t_pnl_total_entity",
+  "sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE trader='Robert' AND date BETWEEN DATE '2026-10-01' AND DATE '2026-10-31'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U04",
+  "template": "t_pnl_total_entity",
+  "sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE book='FX_SPOT' AND date BETWEEN DATE '2026-07-01' AND DATE '2026-07-31'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U05",
+  "template": "t_pnl_total_entity",
+  "sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE desk='Taux'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U06",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U07",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U08",
+  "template": "t_days_over_limit",
+  "sql": "SELECT count(*) FROM v_limites WHERE book='TAUX_USD' AND utilisation_pct>70",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U09",
+  "template": "t_var_breaches",
+  "sql": "SELECT count(*) FROM v_risque_book WHERE book='TAUX_USD' AND depassement_var",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U10",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U11",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U12",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U13",
+  "template": "t_positions_trader",
+  "sql": "SELECT count(DISTINCT position_id) FROM v_positions WHERE trader='Dubois' AND date=(SELECT max(date) FROM v_positions)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U14",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U15",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U16",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U17",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U18",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U19",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U20",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U21",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U22",
+  "template": "t_avg_by_book",
+  "sql": "SELECT book, max(es975_1j_eur) FROM v_risque_book GROUP BY book",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U23",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U24",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U25",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U26",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U27",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U28",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U29",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U30",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U31",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U32",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U33",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U34",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U35",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U36",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U37",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U38",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U39",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U40",
+  "template": "t_rate_last",
+  "sql": "SELECT valeur FROM v_marche WHERE serie='USD_5Y' AND date=(SELECT max(date) FROM v_marche)",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U41",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U42",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U43",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U44",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U45",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U46",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U47",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U48",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U49",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U50",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U51",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U52",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U53",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U54",
+  "template": "t_var_es_book_day",
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book='FX_SPOT' AND date=DATE '2026-10-02'",
+  "outcome": "correct",
+  "fired": true
+ },
+ {
+  "id": "U55",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U56",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U57",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U58",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U59",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ },
+ {
+  "id": "U60",
+  "template": null,
+  "sql": null,
+  "outcome": "declared",
+  "fired": false
+ }
+]

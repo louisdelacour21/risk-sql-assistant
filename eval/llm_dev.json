@@ -4,15 +4,15 @@
   "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' AND date = (SELECT MAX(date) FROM v_risque_book) LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 129.1,
+  "seconds": 210.7,
   "error": null
  },
  {
   "id": "D02",
-  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl_total FROM v_pnl WHERE desk = 'Taux' AND date >= CAST('2026-10-01' AS DATE) AND date <= CAST('2026-10-31' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
-  "outcome": "silent_wrong",
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE desk = 'Taux' AND date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) LIMIT 1000",
+  "outcome": "correct",
   "attempts": 1,
-  "seconds": 70.5,
+  "seconds": 60.7,
   "error": null
  },
  {
@@ -20,23 +20,23 @@
   "sql": "SELECT trader, SUM(ABS(dv01_eur)) AS dv01_abs FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY dv01_abs DESC LIMIT 3",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 60.6,
+  "seconds": 60.4,
   "error": null
  },
  {
   "id": "D04",
-  "sql": "SELECT COUNT(*) AS jours_depassement_80 FROM v_limites WHERE book = 'FX_SPOT' AND utilisation_pct > 80 LIMIT 1000",
+  "sql": "SELECT COUNT(*) FROM v_limites WHERE book = 'FX_SPOT' AND utilisation_pct > 80 LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 54.8,
+  "seconds": 45.4,
   "error": null
  },
  {
   "id": "D05",
-  "sql": "SELECT book, COUNT(*) AS depassements FROM v_risque_book WHERE depassement_var = TRUE GROUP BY book LIMIT 1000",
+  "sql": "SELECT book, COUNT(*) FROM v_risque_book WHERE depassement_var GROUP BY book LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 47.2,
+  "seconds": 38.0,
   "error": null
  },
  {
@@ -44,31 +44,31 @@
   "sql": "SELECT valeur FROM v_marche WHERE serie = 'EUR_10Y' AND date = (SELECT MAX(date) FROM v_marche) LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 70.9,
+  "seconds": 45.6,
   "error": null
  },
  {
   "id": "D07",
-  "sql": "SELECT book, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY book ORDER BY pnl_total LIMIT 1000",
+  "sql": "SELECT book, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY book LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 51.1,
+  "seconds": 36.8,
   "error": null
  },
  {
   "id": "D08",
-  "sql": "SELECT MIN(pnl_eur) AS pnl_pire FROM v_pnl WHERE book = 'TAUX_USD' LIMIT 1000",
-  "outcome": "silent_wrong",
+  "sql": "SELECT MIN(pnl_eur) FROM v_risque_book WHERE book = 'TAUX_USD' LIMIT 1000",
+  "outcome": "correct",
   "attempts": 1,
-  "seconds": 52.2,
+  "seconds": 41.5,
   "error": null
  },
  {
   "id": "D09",
-  "sql": "SELECT COUNT(*) AS nombre_positions FROM v_positions WHERE trader = 'Martin' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "sql": "SELECT COUNT(DISTINCT position_id) FROM v_positions WHERE trader = 'Martin' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 51.7,
+  "seconds": 43.1,
   "error": null
  },
  {
@@ -76,47 +76,47 @@
   "sql": "SELECT book, AVG(var99_1j_eur) AS var_moyenne FROM v_risque_book GROUP BY book LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 51.4,
+  "seconds": 43.1,
   "error": null
  },
  {
   "id": "D11",
-  "sql": "SELECT SUM(ABS(notionnel)) AS notionnel_brut_total_usd FROM v_positions WHERE devise = 'USD' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "sql": "SELECT SUM(ABS(notionnel)) FROM v_positions WHERE devise = 'USD' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 54.4,
+  "seconds": 38.9,
   "error": null
  },
  {
   "id": "D12",
-  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'FX_SPOT' ORDER BY var99_1j_eur DESC LIMIT 1",
-  "outcome": "silent_wrong",
+  "sql": "SELECT date FROM v_risque_book WHERE book = 'FX_SPOT' ORDER BY var99_1j_eur DESC LIMIT 1",
+  "outcome": "correct",
   "attempts": 1,
-  "seconds": 78.6,
+  "seconds": 43.6,
   "error": null
  },
  {
   "id": "D13",
-  "sql": "SELECT book, AVG(utilisation_pct) AS utilisation_moyenne FROM v_limites GROUP BY book ORDER BY utilisation_moyenne DESC LIMIT 1000",
+  "sql": "SELECT book, AVG(utilisation_pct) FROM v_limites GROUP BY book LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 52.8,
+  "seconds": 40.2,
   "error": null
  },
  {
   "id": "D14",
-  "sql": "SELECT SUM(pnl_eur) AS pnl_total FROM v_pnl WHERE trader = 'Dubois' LIMIT 1000",
-  "outcome": "correct",
+  "sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl WHERE trader = 'Dubois' GROUP BY trader LIMIT 1000",
+  "outcome": "silent_wrong",
   "attempts": 1,
-  "seconds": 48.3,
+  "seconds": 41.9,
   "error": null
  },
  {
   "id": "D15",
-  "sql": "SELECT valeur FROM v_marche WHERE serie = 'EURUSD' AND date = '2026-09-15' LIMIT 1000",
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'EURUSD' AND date = CAST('2026-09-15' AS DATE) LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 51.6,
+  "seconds": 44.8,
   "error": null
  },
  {
@@ -124,7 +124,7 @@
   "sql": "SELECT book, limite_eur FROM v_limites LIMIT 1000",
   "outcome": "silent_wrong",
   "attempts": 1,
-  "seconds": 46.9,
+  "seconds": 33.9,
   "error": null
  },
  {
@@ -132,15 +132,15 @@
   "sql": "SELECT SUM(delta_fx_eur) AS delta_fx_total FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 51.7,
+  "seconds": 41.3,
   "error": null
  },
  {
   "id": "D18",
-  "sql": "SELECT book FROM v_risque_book WHERE es975_1j_eur > 300000 GROUP BY book LIMIT 1000",
-  "outcome": "correct",
+  "sql": "SELECT book, AVG(es975_1j_eur) FROM v_risque_book GROUP BY book HAVING AVG(es975_1j_eur) > 300000 LIMIT 1000",
+  "outcome": "silent_wrong",
   "attempts": 1,
-  "seconds": 52.8,
+  "seconds": 51.9,
   "error": null
  },
  {
@@ -148,39 +148,39 @@
   "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl FROM v_pnl WHERE desk = 'Change' GROUP BY 1 ORDER BY 1 LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 79.4,
+  "seconds": 49.8,
   "error": null
  },
  {
   "id": "D20",
-  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' AND date > CAST('2026-10-30' AS DATE) - INTERVAL '30' DAY ORDER BY date LIMIT 1000",
-  "outcome": "correct",
+  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' AND date >= CAST('2026-10-30' AS DATE) - INTERVAL '30' DAY ORDER BY date LIMIT 1000",
+  "outcome": "silent_wrong",
   "attempts": 1,
-  "seconds": 58.2,
+  "seconds": 56.2,
   "error": null
  },
  {
   "id": "D21",
-  "sql": "SELECT desk, COUNT(DISTINCT trader) AS nb_traders FROM v_positions GROUP BY desk ORDER BY nb_traders DESC LIMIT 1000",
+  "sql": "SELECT desk, COUNT(DISTINCT trader) FROM v_positions GROUP BY desk LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 47.2,
+  "seconds": 30.0,
   "error": null
  },
  {
   "id": "D22",
-  "sql": "SELECT r.var99_1j_eur FROM v_risque_book AS r JOIN v_pnl AS p ON r.book = p.book AND r.date = p.date WHERE r.book = 'TAUX_EUR' ORDER BY p.pnl_eur ASC LIMIT 1",
+  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' ORDER BY pnl_eur ASC LIMIT 1",
   "outcome": "silent_wrong",
   "attempts": 1,
-  "seconds": 58.9,
+  "seconds": 45.1,
   "error": null
  },
  {
   "id": "D23",
-  "sql": "SELECT position_id, instrument, devise, notionnel FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) ORDER BY ABS(notionnel) DESC LIMIT 5",
+  "sql": "SELECT trader, SUM(ABS(notionnel)) AS notionnel_absolu FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY notionnel_absolu DESC LIMIT 5",
   "outcome": "silent_wrong",
   "attempts": 1,
-  "seconds": 54.8,
+  "seconds": 42.4,
   "error": null
  },
  {
@@ -188,15 +188,15 @@
   "sql": "SELECT COUNT(DISTINCT date) FROM v_positions LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 54.1,
+  "seconds": 30.4,
   "error": null
  },
  {
   "id": "D25",
-  "sql": "SELECT AVG(valeur) AS taux_moyen FROM v_marche WHERE serie = 'EUR_2Y' AND date BETWEEN '2026-09-01' AND '2026-09-30' LIMIT 1000",
-  "outcome": "silent_wrong",
+  "sql": "SELECT AVG(valeur) FROM v_marche WHERE serie = 'USD_2Y' AND date BETWEEN CAST('2026-09-01' AS DATE) AND CAST('2026-09-30' AS DATE) LIMIT 1000",
+  "outcome": "correct",
   "attempts": 1,
-  "seconds": 76.2,
+  "seconds": 46.6,
   "error": null
  },
  {
@@ -204,39 +204,39 @@
   "sql": "SELECT DISTINCT book FROM v_positions WHERE desk = 'Taux' LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 45.9,
+  "seconds": 36.7,
   "error": null
  },
  {
   "id": "D27",
-  "sql": "SELECT book, utilisation_pct FROM v_limites WHERE date = (SELECT MAX(date) FROM v_limites) ORDER BY utilisation_pct DESC LIMIT 1",
+  "sql": "SELECT book, MAX(utilisation_pct) AS max_utilisation FROM v_limites WHERE date = (SELECT MAX(date) FROM v_limites) GROUP BY book ORDER BY max_utilisation DESC LIMIT 1",
   "outcome": "silent_wrong",
   "attempts": 1,
-  "seconds": 53.7,
+  "seconds": 42.8,
   "error": null
  },
  {
   "id": "D28",
-  "sql": "SELECT (SELECT SUM(pnl_eur) FROM v_pnl WHERE trader = 'Robert') - (SELECT SUM(pnl_eur) FROM v_pnl WHERE trader = 'Petit') AS ecart_pnl LIMIT 1000",
+  "sql": "SELECT (SELECT SUM(pnl_eur) FROM v_pnl WHERE trader = 'Robert') - (SELECT SUM(pnl_eur) FROM v_pnl WHERE trader = 'Petit') LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 56.8,
+  "seconds": 41.0,
   "error": null
  },
  {
   "id": "D29",
-  "sql": "SELECT SUM(pnl_eur) AS pnl FROM v_pnl WHERE desk = 'Taux' AND date = (SELECT MAX(date) FROM v_pnl) LIMIT 1000",
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE desk = 'Taux' AND date = (SELECT MAX(date) FROM v_pnl) LIMIT 1000",
   "outcome": "correct",
   "attempts": 1,
-  "seconds": 52.4,
+  "seconds": 39.4,
   "error": null
  },
  {
   "id": "D30",
-  "sql": "SELECT (valeur - LAG(valeur) OVER (ORDER BY date)) AS pente FROM v_marche WHERE serie = 'EUR_10Y' AND date = (SELECT MAX(date) FROM v_marche) LIMIT 1000",
-  "outcome": "silent_wrong",
+  "sql": "SELECT (SELECT valeur FROM v_marche WHERE serie = 'EUR_10Y' AND date = (SELECT MAX(date) FROM v_marche)) - (SELECT valeur FROM v_marche WHERE serie = 'EUR_2Y' AND date = (SELECT MAX(date) FROM v_marche)) LIMIT 1000",
+  "outcome": "correct",
   "attempts": 1,
-  "seconds": 71.4,
+  "seconds": 47.7,
   "error": null
  }
 ]
