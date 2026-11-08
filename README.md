@@ -2,7 +2,7 @@
 
 Ask a market-risk database questions in French, get a SQL query you can read, and a number you can check.
 
-A local 4B model (`qwen3.5:4b` through Ollama, no API, no cost) proposes the SQL. It never runs anything itself: every query goes through a SQL guard and a read-only DuckDB connection. The point of the project is the **measurement**: a frozen test set, a result comparator, confidence intervals, and the failures published instead of hidden.
+A local 4B model (`qwen3.5:4b` through Ollama, no API, no cost) proposes the SQL. It never runs anything itself: every query goes through a SQL guard and a read-only DuckDB connection. The point of the project is the **measurement**: frozen test sets, a result comparator, confidence intervals, a safety battery, and the failures published instead of hidden.
 
 All data is **synthetic** (60 positions, 250 business days, as of 2026-10-30, three books, two desks). These are not real ECB/FRED series.
 
@@ -13,46 +13,57 @@ All data is **synthetic** (60 positions, 250 business days, as of 2026-10-30, th
 3. **SQL guard** (`sqlglot`): one statement, `SELECT`/`UNION`/`WITH` only, no write node, only catalogue views, a function allow-list, columns resolved (invented columns are rejected), `LIMIT 1000` forced.
 4. **Read-only executor:** DuckDB with external access disabled, configuration locked, 5 s timeout (a cartesian product is interrupted).
 
-The guard is tested against 40 hostile queries (stacked statements, `COPY`, `read_csv`, `ATTACH`, comment tricks, `pragma`…) and 20 legitimate ones. Tests run without Ollama.
-
 ## Results
 
-Two question sets, both written by the author, with the reference SQL checked by running it on the database. Scoring compares result sets (6 significant digits, NULLs as values, column order ignored, row order only when asked). Intervals are Wilson 95 %.
+Three question sets, all written by the author, with the reference SQL checked by running it on the database. Scoring compares result sets (6 significant digits, NULLs as values, column order ignored, row order only when asked). Intervals are Wilson 95 %.
 
-| Run | n | Correct | Wrong without saying so | Declined |
-|---|---|---|---|---|
-| Test v1, first prompt (frozen, run once) | 70 | 37 (53 %, 41–64 %) | 32 (46 %) | 1 |
-| **Test v2, retrieval prompt (frozen, run once)** | 60 | **53 (88 %, 78–94 %)** | 6 (10 %) | 1 |
-| Templates alone on test v2 | 60 | 11 (they answer only what they cover) | 0 | 49 |
+| Run | n | Correct (strict) | Correct (lenient) | Wrong without saying so | Declined |
+|---|---|---|---|---|---|
+| Test v1, first prompt | 70 | 37 (53 %, 41–64 %) | 44 | 32 | 1 |
+| Test v2, retrieval prompt | 60 | 53 (88 %, 78–94 %) | 56 | 6 | 1 |
+| **Test v3, v2 prompt + rules from v2 failures** | 60 | **56 (93 %, 84–97 %)** | 58 | 4 | 0 |
 
-On test v2, accepting extra columns (the right value plus one more) raises the correct count to 56/60. That relaxation was decided after seeing the errors, so the strict figure is the headline.
+**Strict** is the headline: the result set must match the reference exactly. **Lenient** also accepts extra columns (the reference columns appear among the returned ones). Lenient was decided after seeing v2's errors, so for v2 it is post hoc; for v3 it was written down before the run (`eval/build_test3.py`).
 
-Latency on a 16 GB laptop with no GPU: median 42 s, p95 71 s per model question. Templates answer instantly. This is slow; it is a measurement tool, not a product.
+v3 protocol: 60 new questions, hashed (`eval/TEST3_SHA256`), checked to share no question and no reference SQL with the earlier sets, run once on a prompt frozen beforehand. The intervals of v2 and v3 overlap heavily (78–94 % vs 84–97 %): do not read 93 % versus 88 % as proven progress.
 
-### What happened between v1 and v2, honestly
+Latency on a 16 GB laptop with no GPU: median 47 s, p95 66 s per model question on v3. Templates answer instantly. This is slow; it is a measurement tool, not a product.
 
-v1 scored 53 %. Reading its failures showed fixable causes: a misleading few-shot example ("P&L par mois") that made the model add a monthly `GROUP BY` everywhere, the wrong view for daily book P&L, missing `GROUP BY`, invented filters. The prompt changed to retrieval few-shot over the 100 verified pairs of dev + v1, and a **new** 60-question set (v2) was written and run once. v1 is now burned for tuning and is reported as the "before" row. The pairs from v1 sit in the few-shot pool, so v2 questions that look like v1 questions benefit from them: v2 is easier than a set written by a stranger.
+### Safety battery (40 questions, `eval/safety.py`)
+
+| Kind | Stopped or declined |
+|---|---|
+| 20 hostile requests (drop/delete, read a file, `ATTACH`, `COPY`, `getenv`, extension install, prompt leak…) | 20 / 20 |
+| 20 out-of-scope questions (other desks, other assets, forecasts, unknown traders) | 18 / 20 |
+
+The two misses: asking for the P&L of an unknown trader ("Lefevre") and for Martin's P&L in 2024 both produce a valid query that returns one all-NULL row instead of a refusal. Nothing unsafe happened, but the answer is misleading. This is a limit of the prompt and is not fixed here, to keep the run reproducible.
+
+### What happened between v1 and v3, honestly
+
+v1 scored 53 %. Its failures had fixable causes (a misleading few-shot example, wrong view for daily book P&L, missing `GROUP BY`, invented filters). The prompt moved to retrieval few-shot over the verified pairs, and a **new** set (v2) was run once. v2's failures were: 3 extra-column answers and 4 real SQL errors (missing `GROUP BY`, a cumulative, the wrong view for extreme dates, the notional used for "delta FX"). Short rules for those classes were added to the prompt and a **new** set (v3) was run once. Every burned set joins the few-shot pool, so later sets benefit from similar earlier questions: they are easier than a set written by a stranger.
 
 ### Limits you should know
 
-- Both question sets are written by the author. 20 questions written blind by a third party are still missing; the real figure on unseen phrasing is probably lower than 88 %.
-- The remaining v2 errors are silent: a plausible query returning a wrong number (a cumulative P&L returned as a plain sum, a delta FX computed from the notional, the first date of the base taken over four views). The guard prevents damage, not wrong answers. Always read the displayed SQL.
-- Ambiguous phrasing ("last 30 days": `>` or `>=`?) is scored against one fixed reading.
-- 60 questions give wide intervals; do not read 88 % versus 85 % as a difference.
-- Out-of-scope questions are only lightly tested (one refusal example in the prompt).
+- All question sets are written by the author. 20 questions written blind by a third party are still missing; the real figure on unseen phrasing is probably lower than 93 %.
+- The remaining v3 errors are silent: an extra measure column, an absolute-value sum for a net figure, `DISTINCT trader` instead of a delta. The guard prevents damage, not wrong answers. Always read the displayed SQL.
+- Ambiguous phrasing is scored against one fixed reading.
+- 60 questions give wide intervals.
+- Synthetic data only.
+
+## The app
+
+`streamlit run app.py`: **Ask** (example questions, SQL, assumptions, table, chart), **Evaluation** (the table above and every failure with reference and model SQL), **SQL guard playground** (paste any SQL and see it accepted or rejected), **How it works**. Live mode needs `ollama pull qwen3.5:4b`; replay mode (used by the online demo) replays the SQL recorded during the evaluation for the 260 recorded evaluation and safety questions through the same guard and read-only executor, and templates still run live. It cannot answer free-form questions.
 
 ## Run it
 
 ```bash
 pip install -e ".[dev]"
-pytest -q                      # 72 tests, no Ollama needed
-streamlit run app.py           # live mode if Ollama is running, replay mode otherwise
+pytest -q                      # about 100 tests, no Ollama needed
+streamlit run app.py
 ```
 
-Live mode needs `ollama pull qwen3.5:4b`. Replay mode (used by the online demo) replays the SQL recorded during the evaluation for the 160 evaluation questions, through the same guard and read-only executor; templates still run live. It cannot answer free-form questions.
-
-Reproduce the numbers offline: `pytest tests/test_router.py` recomputes test v2 (53 correct, 6 wrong) from the recorded SQL. To re-run the model: `python eval/run_llm.py test2` (about 45 min on CPU).
+The tests cover the guard (hostile and legitimate SQL), the comparator, the router, the integrity of the hashed sets, the reproduction of the scores from the recorded SQL, the safety replay and the app in replay mode. Reproduce the scores: `python eval/score.py`. Re-run the model: `python eval/run_llm.py test3` (about 50 min on CPU) and `python eval/safety.py`.
 
 ## Layout
 
-`src/risksql/` catalogue, guard, executor, templates, LLM step, router, scoring · `eval/` question sets (v2 sha256 in `TEST2_SHA256`), recorded model runs, scripts · `tests/` · `app.py` Streamlit front end · `data/risk.duckdb` synthetic database (1.6 MB).
+`src/risksql/` catalogue, guard, executor, templates, LLM step, router, scoring · `eval/` question sets and hashes, recorded model runs, scripts · `tests/` · `app.py` Streamlit front end · `data/risk.duckdb` synthetic database (1.6 MB).

@@ -45,7 +45,7 @@ live = ollama_up()
 mode = st.sidebar.radio("Mode", ["live", "replay"] if live else ["replay"],
                         help="Live calls the local model. Replay re-runs the SQL recorded during the evaluation, through the same guard.")
 if not live:
-    st.sidebar.info("No local model here: replay mode. The 160 evaluation questions and the template questions work; free text does not.")
+    st.sidebar.info("No local model here: replay mode. The 260 recorded evaluation questions and the template questions work; free text does not.")
 st.sidebar.markdown("**Reading the answers.** Always read the SQL. The guard prevents damage, not wrong answers.")
 
 ask, evaluation, playground, about = st.tabs(["Ask", "Evaluation", "SQL guard playground", "How it works"])

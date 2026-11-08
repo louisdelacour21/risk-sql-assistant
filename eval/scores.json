@@ -426,55 +426,88 @@
   "p95_s": 64.4
  },
  "v3": {
-  "n": 1,
+  "n": 60,
   "strict": {
    "execution_accuracy": {
-    "rate": 1.0,
-    "lo": 0.2065493143772374,
-    "hi": 1.0,
-    "k": 1,
-    "n": 1
+    "rate": 0.9333333333333333,
+    "lo": 0.8407464268680283,
+    "hi": 0.9737713012754938,
+    "k": 56,
+    "n": 60
    },
    "silent_wrong": {
-    "rate": 0.0,
-    "lo": 0.0,
-    "hi": 0.7934506856227627,
-    "k": 0,
-    "n": 1
+    "rate": 0.06666666666666667,
+    "lo": 0.0262286987245062,
+    "hi": 0.1592535731319717,
+    "k": 4,
+    "n": 60
    },
    "declared_failure": {
     "rate": 0.0,
     "lo": 0.0,
-    "hi": 0.7934506856227627,
+    "hi": 0.060171852142089886,
     "k": 0,
-    "n": 1
+    "n": 60
    }
   },
   "lenient": {
    "execution_accuracy": {
-    "rate": 1.0,
-    "lo": 0.2065493143772374,
-    "hi": 1.0,
-    "k": 1,
-    "n": 1
+    "rate": 0.9666666666666667,
+    "lo": 0.886362257256914,
+    "hi": 0.9908106807438021,
+    "k": 58,
+    "n": 60
    },
    "silent_wrong": {
-    "rate": 0.0,
-    "lo": 0.0,
-    "hi": 0.7934506856227627,
-    "k": 0,
-    "n": 1
+    "rate": 0.03333333333333333,
+    "lo": 0.00918931925619787,
+    "hi": 0.11363774274308602,
+    "k": 2,
+    "n": 60
    },
    "declared_failure": {
     "rate": 0.0,
     "lo": 0.0,
-    "hi": 0.7934506856227627,
+    "hi": 0.060171852142089886,
     "k": 0,
-    "n": 1
+    "n": 60
    }
   },
-  "failures": [],
-  "p50_s": 54.6,
-  "p95_s": 54.6
+  "failures": [
+   {
+    "id": "V07",
+    "question": "Donne les 3 books les plus risqués en VaR au dernier jour",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book FROM v_risque_book WHERE date=(SELECT max(date) FROM v_risque_book) ORDER BY var99_1j_eur DESC LIMIT 3",
+    "got_sql": "SELECT book, var99_1j_eur FROM v_risque_book WHERE date = (SELECT MAX(date) FROM v_risque_book) ORDER BY var99_1j_eur DESC LIMIT 3",
+    "error": null
+   },
+   {
+    "id": "V15",
+    "question": "Notionnel net total en USD au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT sum(notionnel) FROM v_positions WHERE devise='USD' AND date=(SELECT max(date) FROM v_positions)",
+    "got_sql": "SELECT SUM(ABS(notionnel)) FROM v_positions WHERE devise = 'USD' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "V23",
+    "question": "ES moyenne du book TAUX_USD ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT avg(es975_1j_eur) FROM v_risque_book WHERE book='TAUX_USD'",
+    "got_sql": "SELECT book, AVG(es975_1j_eur) AS es_moyenne FROM v_risque_book WHERE book = 'TAUX_USD' GROUP BY book LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "V55",
+    "question": "Delta FX du trader Dubois au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT sum(delta_fx_eur) FROM v_positions WHERE trader='Dubois' AND date=(SELECT max(date) FROM v_positions)",
+    "got_sql": "SELECT DISTINCT trader FROM v_positions WHERE trader = 'Dubois' AND delta_fx_eur <> 0 AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+    "error": null
+   }
+  ],
+  "p50_s": 47.0,
+  "p95_s": 65.7
  }
 }
