@@ -6,6 +6,6 @@ dependencies = ["duckdb>=1.1", "sqlglot>=25", "pyyaml", "pandas", "numpy", "pyda
 [project.optional-dependencies]
 dev = ["pytest"]
 [tool.setuptools.package-data]
-risksql = ["catalog.yaml"]
+risksql = ["catalog.yaml", "replay.json"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]

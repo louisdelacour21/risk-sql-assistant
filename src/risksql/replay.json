@@ -1,0 +1,642 @@
+{
+ "Quelle est la VaR du book FX_SPOT au dernier jour ?": {
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book = 'FX_SPOT' AND date = (SELECT MAX(date) FROM v_risque_book) LIMIT 1000",
+  "error": null
+ },
+ "Quelle est l'ES du book TAUX_USD au dernier jour ?": {
+  "sql": "SELECT es975_1j_eur FROM v_risque_book WHERE book = 'TAUX_USD' AND date = (SELECT MAX(date) FROM v_risque_book) LIMIT 1000",
+  "error": null
+ },
+ "Quel est le P&L total du desk Change en septembre 2026 ?": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl_total FROM v_pnl WHERE desk = 'Change' AND date >= CAST('2026-09-01' AS DATE) AND date <= CAST('2026-09-30' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Quel est le P&L total du book TAUX_USD en août 2026 ?": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) FROM v_pnl WHERE desk = 'Change' AND date BETWEEN '2026-08-01' AND '2026-08-31' GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les 3 books avec la plus grande VaR au dernier jour ?": {
+  "sql": "SELECT book, var99_1j_eur FROM v_risque_book WHERE date = (SELECT MAX(date) FROM v_risque_book) ORDER BY var99_1j_eur DESC LIMIT 3",
+  "error": null
+ },
+ "Quels sont les 2 traders avec le plus grand delta FX absolu au dernier jour ?": {
+  "sql": "SELECT trader, SUM(ABS(delta_fx_eur)) AS delta_abs FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY delta_abs DESC LIMIT 2",
+  "error": null
+ },
+ "Combien de jours le book TAUX_EUR a-t-il dépassé 80 % de sa limite ?": {
+  "sql": "SELECT COUNT(*) FROM v_limites WHERE book = 'TAUX_EUR' AND utilisation_pct > 80 LIMIT 1000",
+  "error": null
+ },
+ "Combien de jours le book TAUX_USD a-t-il dépassé 90 % de sa limite ?": {
+  "sql": "SELECT COUNT(*) AS jour_depassement_90 FROM v_limites WHERE book = 'TAUX_USD' AND utilisation_pct > 90 LIMIT 1000",
+  "error": null
+ },
+ "Combien de dépassements de VaR a eu le book FX_SPOT ?": {
+  "sql": "SELECT COUNT(*) AS nombre_depassements FROM v_risque_book WHERE book = 'FX_SPOT' AND depassement_var LIMIT 1000",
+  "error": null
+ },
+ "Combien de dépassements de VaR au total ?": {
+  "sql": "SELECT COUNT(*) FROM v_risque_book WHERE depassement_var LIMIT 1000",
+  "error": null
+ },
+ "Quels jours le book TAUX_EUR a-t-il dépassé sa VaR ?": {
+  "sql": "SELECT date FROM v_risque_book WHERE book = 'TAUX_EUR' AND depassement_var = TRUE LIMIT 1000",
+  "error": null
+ },
+ "Quel est le meilleur P&L journalier du book FX_SPOT ?": {
+  "sql": "SELECT MAX(pnl_eur) AS meilleur_pnl FROM v_pnl WHERE book = 'FX_SPOT' LIMIT 1000",
+  "error": null
+ },
+ "Quel est le pire P&L journalier tous books confondus ?": {
+  "sql": "SELECT date, MIN(pnl_eur) AS pnl_jour_min FROM v_pnl GROUP BY date ORDER BY pnl_jour_min ASC LIMIT 1",
+  "error": null
+ },
+ "Combien de positions a le trader Thomas au dernier jour ?": {
+  "sql": "SELECT COUNT(*) AS nombre_positions FROM v_positions WHERE trader = 'Thomas' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Combien de positions par book au dernier jour ?": {
+  "sql": "SELECT COUNT(*) AS nombre_positions FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Notionnel net total par devise au dernier jour ?": {
+  "sql": "SELECT devise, SUM(notionnel) AS notionnel_net_total FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY devise ORDER BY notionnel_net_total DESC LIMIT 1000",
+  "error": null
+ },
+ "Notionnel brut total du book TAUX_EUR au dernier jour ?": {
+  "sql": "SELECT SUM(ABS(notionnel)) AS notionnel_brut_total FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND instrument IN ('IRS 10Y', 'EURUSD spot') LIMIT 1000",
+  "error": null
+ },
+ "DV01 net total du book TAUX_USD au dernier jour ?": {
+  "sql": "SELECT SUM(p.abs(dv01_eur)) AS dv01_net_total FROM (SELECT position_id, dv01_eur FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND book = 'TAUX_USD') AS p LIMIT 1000",
+  "error": "ValueError: execution error: Binder Error: No function matches the given name and argument types 'abs(STRUCT(position_id VARCHAR, dv01_eur DOUBLE), DOUBLE)'. You might need to add explicit type casts."
+ },
+ "Quel trader a le plus gros P&L total ?": {
+  "sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY trader ORDER BY pnl_total DESC LIMIT 1",
+  "error": null
+ },
+ "Quel trader a le plus mauvais P&L total ?": {
+  "sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY trader ORDER BY pnl_total ASC LIMIT 1",
+  "error": null
+ },
+ "P&L total par trader ?": {
+  "sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY trader ORDER BY pnl_total DESC LIMIT 1000",
+  "error": null
+ },
+ "P&L total par desk ?": {
+  "sql": "SELECT desk, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY desk ORDER BY pnl_total DESC LIMIT 1000",
+  "error": null
+ },
+ "ES moyen par book ?": {
+  "sql": "SELECT book, AVG(var99_1j_eur) AS mean_var FROM v_risque_book GROUP BY 1 LIMIT 1000",
+  "error": null
+ },
+ "VaR maximale par book ?": {
+  "sql": "SELECT MAX(var99_1j_eur) AS var_maxime FROM v_risque_book LIMIT 1000",
+  "error": null
+ },
+ "Utilisation maximale de la limite par book ?": {
+  "sql": "SELECT book, MAX(utilisation_pct) AS utilisation_max FROM v_limites GROUP BY book ORDER BY utilisation_max DESC LIMIT 1000",
+  "error": null
+ },
+ "Quelle est l'utilisation de la limite du book FX_SPOT au dernier jour ?": {
+  "sql": "SELECT utilisation_pct FROM v_limites WHERE book = 'FX_SPOT' AND date = (SELECT MAX(date) FROM v_limites) LIMIT 1000",
+  "error": null
+ },
+ "Quelle est la limite du book TAUX_USD ?": {
+  "sql": "SELECT limite_eur FROM v_limites WHERE book = 'TAUX_USD' AND date = (SELECT MAX(date) FROM v_limites) LIMIT 1000",
+  "error": null
+ },
+ "Quels books ont une VaR moyenne supérieure à 1 million ?": {
+  "sql": "SELECT book, AVG(var99_1j_eur) AS var_moyenne FROM v_risque_book GROUP BY book HAVING AVG(var99_1j_eur) > 1000000 LIMIT 1000",
+  "error": null
+ },
+ "Quels books ont déjà dépassé 85 % de leur limite ?": {
+  "sql": "SELECT book FROM v_limites WHERE utilisation_pct > 85 LIMIT 1000",
+  "error": null
+ },
+ "Quel jour la VaR du book TAUX_USD a-t-elle été minimale ?": {
+  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_USD' ORDER BY var99_1j_eur ASC LIMIT 1",
+  "error": null
+ },
+ "Quel jour le P&L du desk Taux a-t-il été le plus mauvais ?": {
+  "sql": "SELECT date, MIN(pnl_eur) AS pnl_min FROM v_pnl WHERE desk = 'Taux' GROUP BY date ORDER BY pnl_min ASC LIMIT 1",
+  "error": null
+ },
+ "P&L du book FX_SPOT par mois ?": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl FROM v_pnl WHERE book = 'FX_SPOT' GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Évolution de la VaR du book FX_SPOT sur les 60 derniers jours": {
+  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'FX_SPOT' AND date >= CAST('2026-10-30' AS DATE) - INTERVAL '60' DAY ORDER BY date LIMIT 1000",
+  "error": null
+ },
+ "Évolution du taux USD 10Y sur les 90 derniers jours": {
+  "sql": "SELECT date, valeur FROM v_marche WHERE serie = 'USD_10Y' AND date > CAST('2026-10-30' AS DATE) - INTERVAL '90' DAY ORDER BY date LIMIT 1000",
+  "error": null
+ },
+ "P&L cumulé du desk Taux sur le mois d'octobre 2026": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl_cumule FROM v_pnl WHERE desk = 'Taux' AND date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Nombre de traders par book ?": {
+  "sql": "SELECT COUNT(DISTINCT trader) AS nombre_traders FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les books du desk Change ?": {
+  "sql": "SELECT DISTINCT book FROM v_positions WHERE desk = 'Change' LIMIT 1000",
+  "error": null
+ },
+ "Quels traders travaillent sur le book TAUX_USD ?": {
+  "sql": "SELECT DISTINCT trader FROM v_positions WHERE date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) AND instrument IN ('IRS 10Y', 'IRS 5Y', 'IRS 2Y') AND dv01_eur > 0 LIMIT 1000",
+  "error": null
+ },
+ "Quelle est la date la plus récente de la base ?": {
+  "sql": "SELECT MAX(date) AS date_recente FROM v_positions LIMIT 1000",
+  "error": null
+ },
+ "Combien de positions distinctes dans la base ?": {
+  "sql": "SELECT COUNT(DISTINCT position_id) FROM v_positions LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les instruments du book TAUX_EUR ?": {
+  "sql": "SELECT DISTINCT instrument FROM v_positions WHERE date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) AND desk = 'Taux' AND book = 'TAUX_EUR' LIMIT 1000",
+  "error": null
+ },
+ "EURUSD le plus haut de la période ?": {
+  "sql": "SELECT MAX(valeur) AS max_cours FROM v_marche WHERE serie = 'EURUSD' LIMIT 1000",
+  "error": null
+ },
+ "EURUSD le plus bas de la période ?": {
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'EURUSD' ORDER BY valeur ASC LIMIT 1",
+  "error": null
+ },
+ "Taux EUR 5Y au dernier jour ?": {
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'EUR_5Y' AND date = (SELECT MAX(date) FROM v_marche) LIMIT 1000",
+  "error": null
+ },
+ "Taux USD 10Y moyen sur août 2026 ?": {
+  "sql": "SELECT AVG(v_marche.valeur) AS taux_moyen FROM v_marche WHERE serie = 'USD_10Y' AND date BETWEEN CAST('2026-08-01' AS DATE) AND CAST('2026-08-31' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Pente 10Y-2Y USD au dernier jour ?": {
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'USD_10Y' AND date = (SELECT MAX(date) FROM v_marche) LIMIT 1000",
+  "error": null
+ },
+ "Variation du taux EUR 10Y entre le 1er et le 30 octobre 2026": {
+  "sql": "SELECT v_marche.serie, v_marche.valeur AS valeur_1er_octobre, v_marche.valeur AS valeur_30_octobre FROM v_marche WHERE serie = 'EUR_10Y' AND date BETWEEN '2026-10-01' AND '2026-10-30' LIMIT 1000",
+  "error": null
+ },
+ "Écart de P&L entre le desk Taux et le desk Change sur toute la période": {
+  "sql": "SELECT (SUM(CASE WHEN desk = 'Taux' THEN ABS(pnl_eur) ELSE 0 END) - SUM(CASE WHEN desk = 'Change' THEN ABS(pnl_eur) ELSE 0 END)) AS ecart_pnl FROM v_pnl LIMIT 1000",
+  "error": null
+ },
+ "Part du P&L total due au trader Martin": {
+  "sql": "SELECT SUM(pnl_eur) FILTER(WHERE trader = 'Martin') / SUM(ABS(pnl_eur)) AS part_pnl FROM v_pnl LIMIT 1000",
+  "error": null
+ },
+ "P&L moyen journalier du book TAUX_EUR ?": {
+  "sql": "SELECT AVG(pnl_eur) AS pnl_moyen_jour FROM v_pnl WHERE book = 'TAUX_EUR' LIMIT 1000",
+  "error": null
+ },
+ "Écart-type du P&L journalier du book FX_SPOT ?": {
+  "sql": "SELECT STDDEV(pnl_eur) FROM v_pnl WHERE book = 'FX_SPOT' LIMIT 1000",
+  "error": null
+ },
+ "Médiane de la VaR du book TAUX_USD ?": {
+  "sql": "SELECT QUANTILE_CONT(var99_1j_eur, 0.5 ORDER BY var99_1j_eur) AS mediana_var FROM v_risque_book WHERE book = 'TAUX_USD' LIMIT 1000",
+  "error": null
+ },
+ "Combien de jours le P&L du book TAUX_EUR a-t-il été négatif ?": {
+  "sql": "SELECT COUNT(*) FROM v_pnl WHERE date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) AND book = 'TAUX_EUR' AND pnl_eur < 0 LIMIT 1000",
+  "error": null
+ },
+ "Combien de jours le P&L total de la banque a-t-il été négatif ?": {
+  "sql": "SELECT COUNT(*) AS jours_pnl_negatifs FROM v_pnl WHERE pnl_eur < 0 LIMIT 1000",
+  "error": null
+ },
+ "Classe les books par P&L total décroissant": {
+  "sql": "SELECT book, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY book ORDER BY pnl_total DESC LIMIT 1000",
+  "error": null
+ },
+ "Classe les traders par notionnel brut au dernier jour": {
+  "sql": "SELECT trader, SUM(ABS(notionnel)) AS notionnel_brut FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY notionnel_brut DESC LIMIT 1000",
+  "error": null
+ },
+ "Le jour du pire P&L de FX_SPOT, quelle était sa VaR ?": {
+  "sql": "SELECT p.date, v.var99_1j_eur FROM (SELECT date, MIN(pnl_eur) AS min_pnl FROM v_pnl WHERE book = 'FX_SPOT' GROUP BY date) AS p JOIN v_risque_book AS v ON p.date = v.date AND v.book = 'FX_SPOT' WHERE NOT p.min_pnl IS NULL ORDER BY p.min_pnl ASC LIMIT 1",
+  "error": null
+ },
+ "Quel est le P&L du trader Bernard en juillet 2026 ?": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) FROM v_pnl WHERE trader = 'Bernard' AND date BETWEEN '2026-07-01' AND '2026-07-31' GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Quel est le P&L du trader Petit le dernier jour ?": {
+  "sql": "SELECT trader, SUM(pnl_eur) AS pnl FROM v_pnl WHERE trader = 'Petit' AND date = (SELECT MAX(date) FROM v_pnl) GROUP BY trader LIMIT 1000",
+  "error": null
+ },
+ "VaR du book TAUX_EUR le 30 septembre 2026 ?": {
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' AND date = '2026-09-30' LIMIT 1000",
+  "error": null
+ },
+ "ES du book FX_SPOT le 15 octobre 2026 ?": {
+  "sql": "SELECT es975_1j_eur FROM v_risque_book WHERE book = 'FX_SPOT' AND date = '2026-10-15' LIMIT 1000",
+  "error": null
+ },
+ "Utilisation de limite de TAUX_EUR le 1er octobre 2026 ?": {
+  "sql": "SELECT utilisation_pct FROM v_limites WHERE book = 'TAUX_EUR' AND date = '2026-10-01' LIMIT 1000",
+  "error": null
+ },
+ "Valeur de l'EURUSD le 2 septembre 2026 ?": {
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'EURUSD' AND date = '2026-09-02' LIMIT 1000",
+  "error": null
+ },
+ "Delta FX du book FX_SPOT par trader au dernier jour": {
+  "sql": "SELECT trader, SUM(delta_fx_eur) AS delta_fx_eur FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND book = 'FX_SPOT' GROUP BY trader ORDER BY delta_fx_eur DESC LIMIT 1000",
+  "error": null
+ },
+ "DV01 absolu par instrument du book TAUX_EUR au dernier jour": {
+  "sql": "SELECT instrument, SUM(ABS(dv01_eur)) AS dv01_absolu FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND desk = 'Taux' AND book = 'TAUX_EUR' GROUP BY instrument ORDER BY dv01_absolu DESC LIMIT 1000",
+  "error": null
+ },
+ "Combien de jours VaR du book TAUX_EUR au-dessus de 250000 ?": {
+  "sql": "SELECT COUNT(*) FROM v_risque_book WHERE book = 'TAUX_EUR' AND var99_1j_eur > 250000 LIMIT 1000",
+  "error": null
+ },
+ "Utilisation de limite moyenne en octobre 2026 par book": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, AVG(utilisation_pct) FROM v_limites WHERE date >= CAST('2026-10-01' AS DATE) AND date <= CAST('2026-10-31' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "VaR moyenne en septembre 2026 par book": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, AVG(var99_1j_eur) AS var_moyenne FROM v_risque_book WHERE date >= CAST('2026-09-01' AS DATE) AND date <= CAST('2026-09-30' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Nombre de positions short (notionnel négatif) au dernier jour": {
+  "sql": "SELECT COUNT(*) FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND notionnel < 0 LIMIT 1000",
+  "error": null
+ },
+ "Notionnel du plus gros short au dernier jour": {
+  "sql": "SELECT instrument, SUM(notionnel) AS notionnel FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND position_id IN (SELECT position_id FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) ORDER BY ABS(notionnel) DESC LIMIT 1) GROUP BY instrument LIMIT 1000",
+  "error": null
+ },
+ "Quelle est la VaR du book TAUX_EUR au dernier jour ?": {
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' AND date = (SELECT MAX(date) FROM v_risque_book) LIMIT 1000",
+  "error": null
+ },
+ "Quel est le P&L total du desk Taux en octobre 2026 ?": {
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE desk = 'Taux' AND date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les 3 traders avec le plus grand DV01 absolu au dernier jour ?": {
+  "sql": "SELECT trader, SUM(ABS(dv01_eur)) AS dv01_abs FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY dv01_abs DESC LIMIT 3",
+  "error": null
+ },
+ "Combien de jours le book FX_SPOT a-t-il dépassé 80 % de sa limite ?": {
+  "sql": "SELECT COUNT(*) FROM v_limites WHERE book = 'FX_SPOT' AND utilisation_pct > 80 LIMIT 1000",
+  "error": null
+ },
+ "Combien de dépassements de VaR par book ?": {
+  "sql": "SELECT book, COUNT(*) FROM v_risque_book WHERE depassement_var GROUP BY book LIMIT 1000",
+  "error": null
+ },
+ "Quel est le taux EUR 10Y au dernier jour ?": {
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'EUR_10Y' AND date = (SELECT MAX(date) FROM v_marche) LIMIT 1000",
+  "error": null
+ },
+ "P&L total par book ?": {
+  "sql": "SELECT book, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY book LIMIT 1000",
+  "error": null
+ },
+ "Quel est le pire P&L journalier du book TAUX_USD ?": {
+  "sql": "SELECT MIN(pnl_eur) FROM v_risque_book WHERE book = 'TAUX_USD' LIMIT 1000",
+  "error": null
+ },
+ "Combien de positions a le trader Martin au dernier jour ?": {
+  "sql": "SELECT COUNT(DISTINCT position_id) FROM v_positions WHERE trader = 'Martin' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Quelle est la VaR moyenne par book ?": {
+  "sql": "SELECT book, AVG(var99_1j_eur) AS var_moyenne FROM v_risque_book GROUP BY book LIMIT 1000",
+  "error": null
+ },
+ "Notionnel brut total en USD au dernier jour ?": {
+  "sql": "SELECT SUM(ABS(notionnel)) FROM v_positions WHERE devise = 'USD' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Quel jour la VaR du book FX_SPOT a-t-elle été maximale ?": {
+  "sql": "SELECT date FROM v_risque_book WHERE book = 'FX_SPOT' ORDER BY var99_1j_eur DESC LIMIT 1",
+  "error": null
+ },
+ "Utilisation moyenne de la limite par book ?": {
+  "sql": "SELECT book, AVG(utilisation_pct) FROM v_limites GROUP BY book LIMIT 1000",
+  "error": null
+ },
+ "P&L total du trader Dubois ?": {
+  "sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl WHERE trader = 'Dubois' GROUP BY trader LIMIT 1000",
+  "error": null
+ },
+ "Quelle est la valeur de l'EURUSD le 15 septembre 2026 ?": {
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'EURUSD' AND date = CAST('2026-09-15' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Limite en euros de chaque book ?": {
+  "sql": "SELECT book, limite_eur FROM v_limites LIMIT 1000",
+  "error": null
+ },
+ "Delta FX total au dernier jour ?": {
+  "sql": "SELECT SUM(delta_fx_eur) AS delta_fx_total FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Quels books ont un ES moyen supérieur à 300000 ?": {
+  "sql": "SELECT book, AVG(es975_1j_eur) FROM v_risque_book GROUP BY book HAVING AVG(es975_1j_eur) > 300000 LIMIT 1000",
+  "error": null
+ },
+ "P&L par mois du desk Change ?": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl FROM v_pnl WHERE desk = 'Change' GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Évolution de la VaR du book TAUX_EUR sur les 30 derniers jours": {
+  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' AND date >= CAST('2026-10-30' AS DATE) - INTERVAL '30' DAY ORDER BY date LIMIT 1000",
+  "error": null
+ },
+ "Combien de traders par desk ?": {
+  "sql": "SELECT desk, COUNT(DISTINCT trader) FROM v_positions GROUP BY desk LIMIT 1000",
+  "error": null
+ },
+ "Le jour où le P&L du book TAUX_EUR a été le plus mauvais, quelle était sa VaR ?": {
+  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' ORDER BY pnl_eur ASC LIMIT 1",
+  "error": null
+ },
+ "Top 5 des positions par notionnel absolu au dernier jour": {
+  "sql": "SELECT trader, SUM(ABS(notionnel)) AS notionnel_absolu FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY notionnel_absolu DESC LIMIT 5",
+  "error": null
+ },
+ "Nombre de jours de bourse dans la base ?": {
+  "sql": "SELECT COUNT(DISTINCT date) FROM v_positions LIMIT 1000",
+  "error": null
+ },
+ "Taux USD 2Y moyen sur septembre 2026 ?": {
+  "sql": "SELECT AVG(valeur) FROM v_marche WHERE serie = 'USD_2Y' AND date BETWEEN CAST('2026-09-01' AS DATE) AND CAST('2026-09-30' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les books du desk Taux ?": {
+  "sql": "SELECT DISTINCT book FROM v_positions WHERE desk = 'Taux' LIMIT 1000",
+  "error": null
+ },
+ "Quel book a la plus forte utilisation de limite au dernier jour ?": {
+  "sql": "SELECT book, MAX(utilisation_pct) AS max_utilisation FROM v_limites WHERE date = (SELECT MAX(date) FROM v_limites) GROUP BY book ORDER BY max_utilisation DESC LIMIT 1",
+  "error": null
+ },
+ "Écart de P&L entre le trader Robert et le trader Petit sur toute la période": {
+  "sql": "SELECT (SELECT SUM(pnl_eur) FROM v_pnl WHERE trader = 'Robert') - (SELECT SUM(pnl_eur) FROM v_pnl WHERE trader = 'Petit') LIMIT 1000",
+  "error": null
+ },
+ "Quel est le P&L du desk Taux le jour le plus récent ?": {
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE desk = 'Taux' AND date = (SELECT MAX(date) FROM v_pnl) LIMIT 1000",
+  "error": null
+ },
+ "Pente 10Y-2Y EUR au dernier jour ?": {
+  "sql": "SELECT (SELECT valeur FROM v_marche WHERE serie = 'EUR_10Y' AND date = (SELECT MAX(date) FROM v_marche)) - (SELECT valeur FROM v_marche WHERE serie = 'EUR_2Y' AND date = (SELECT MAX(date) FROM v_marche)) LIMIT 1000",
+  "error": null
+ },
+ "Donne-moi la VaR du book TAUX_USD au dernier jour": {
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_USD' AND date = (SELECT MAX(date) FROM v_risque_book) LIMIT 1000",
+  "error": null
+ },
+ "Quelle est l'ES du book TAUX_EUR le 15 septembre 2026 ?": {
+  "sql": "SELECT es975_1j_eur FROM v_risque_book WHERE book = 'TAUX_EUR' AND date = CAST('2026-09-15' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "P&L total du trader Robert en octobre 2026 ?": {
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE trader = 'Robert' AND date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Quel est le P&L total du book FX_SPOT en juillet 2026 ?": {
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE book = 'FX_SPOT' AND date BETWEEN CAST('2026-07-01' AS DATE) AND CAST('2026-07-31' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Quel est le P&L total du desk Taux sur toute la période ?": {
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE desk = 'Taux' LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les 2 books avec la plus grande ES au dernier jour ?": {
+  "sql": "SELECT book, es975_1j_eur FROM v_risque_book WHERE date = (SELECT MAX(date) FROM v_risque_book) ORDER BY es975_1j_eur DESC LIMIT 2",
+  "error": null
+ },
+ "Quels sont les 3 traders avec le plus grand notionnel brut au dernier jour ?": {
+  "sql": "SELECT trader, SUM(ABS(notionnel)) AS notionnel_brut FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY notionnel_brut DESC LIMIT 3",
+  "error": null
+ },
+ "Combien de jours le book TAUX_USD a-t-il dépassé 70 % de sa limite ?": {
+  "sql": "SELECT COUNT(*) FROM v_limites WHERE book = 'TAUX_USD' AND utilisation_pct > 70 LIMIT 1000",
+  "error": null
+ },
+ "Combien de dépassements de VaR a eu le book TAUX_USD ?": {
+  "sql": "SELECT COUNT(*) FROM v_risque_book WHERE book = 'TAUX_USD' AND depassement_var LIMIT 1000",
+  "error": null
+ },
+ "Quels jours le book FX_SPOT a-t-il dépassé sa VaR ?": {
+  "sql": "SELECT DISTINCT date FROM v_risque_book WHERE book = 'FX_SPOT' AND depassement_var = TRUE LIMIT 1000",
+  "error": null
+ },
+ "Quel est le plus mauvais P&L journalier du book TAUX_EUR ?": {
+  "sql": "SELECT MIN(pnl_eur) FROM v_risque_book WHERE book = 'TAUX_EUR' LIMIT 1000",
+  "error": null
+ },
+ "Quel est le meilleur P&L journalier du book TAUX_USD ?": {
+  "sql": "SELECT MAX(pnl_eur) FROM v_risque_book WHERE book = 'TAUX_USD' LIMIT 1000",
+  "error": null
+ },
+ "Combien de positions a le trader Dubois au dernier jour ?": {
+  "sql": "SELECT COUNT(DISTINCT position_id) FROM v_positions WHERE trader = 'Dubois' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Combien de positions par desk au dernier jour ?": {
+  "sql": "SELECT desk, COUNT(*) AS nombre_positions FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY desk LIMIT 1000",
+  "error": null
+ },
+ "Notionnel net total en EUR au dernier jour ?": {
+  "sql": "SELECT SUM(notionnel) FROM v_positions WHERE devise = 'EUR' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Notionnel brut total du book FX_SPOT au dernier jour ?": {
+  "sql": "SELECT SUM(ABS(notionnel)) FROM v_positions WHERE book = 'FX_SPOT' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "DV01 net total du book TAUX_EUR au dernier jour ?": {
+  "sql": "SELECT SUM(dv01_eur) AS dv01_net_total FROM v_positions WHERE book = 'TAUX_EUR' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "DV01 net par trader au dernier jour ?": {
+  "sql": "SELECT trader, SUM(dv01_eur) AS dv01_net FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader LIMIT 1000",
+  "error": null
+ },
+ "Quel trader a le plus gros DV01 absolu au dernier jour ?": {
+  "sql": "SELECT trader, SUM(ABS(dv01_eur)) AS dv01_abs FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY dv01_abs DESC LIMIT 1",
+  "error": null
+ },
+ "Quel desk a le meilleur P&L total ?": {
+  "sql": "SELECT desk FROM v_pnl GROUP BY desk ORDER BY SUM(pnl_eur) DESC LIMIT 1",
+  "error": null
+ },
+ "Quel book a le pire P&L total ?": {
+  "sql": "SELECT book FROM v_pnl GROUP BY book ORDER BY SUM(pnl_eur) ASC LIMIT 1",
+  "error": null
+ },
+ "ES maximale par book ?": {
+  "sql": "SELECT book, MAX(es975_1j_eur) FROM v_risque_book GROUP BY book LIMIT 1000",
+  "error": null
+ },
+ "VaR moyenne du book FX_SPOT ?": {
+  "sql": "SELECT AVG(var99_1j_eur) FROM v_risque_book WHERE book = 'FX_SPOT' LIMIT 1000",
+  "error": null
+ },
+ "Utilisation moyenne de la limite du book TAUX_USD ?": {
+  "sql": "SELECT AVG(utilisation_pct) FROM v_limites WHERE book = 'TAUX_USD' LIMIT 1000",
+  "error": null
+ },
+ "Quelle est la limite du book FX_SPOT ?": {
+  "sql": "SELECT DISTINCT limite_eur FROM v_limites WHERE book = 'FX_SPOT' LIMIT 1000",
+  "error": null
+ },
+ "Quels books ont une ES moyenne supérieure à 500000 ?": {
+  "sql": "SELECT DISTINCT book FROM v_risque_book GROUP BY book HAVING AVG(es975_1j_eur) > 500000 LIMIT 1000",
+  "error": null
+ },
+ "Quels books ont déjà dépassé 75 % de leur limite ?": {
+  "sql": "SELECT DISTINCT book FROM v_limites WHERE utilisation_pct > 75 LIMIT 1000",
+  "error": null
+ },
+ "Quel jour l'ES du book TAUX_EUR a-t-elle été maximale ?": {
+  "sql": "SELECT date FROM v_risque_book WHERE book = 'TAUX_EUR' ORDER BY es975_1j_eur DESC LIMIT 1",
+  "error": null
+ },
+ "Quel jour le P&L du desk Change a-t-il été le meilleur ?": {
+  "sql": "SELECT date FROM v_pnl WHERE desk = 'Change' ORDER BY SUM(pnl_eur) DESC LIMIT 1",
+  "error": "ValueError: execution error: Binder Error: column \"date\" must appear in the GROUP BY clause or must be part of an aggregate function."
+ },
+ "Quel jour le P&L du book TAUX_USD a-t-il été le plus mauvais ?": {
+  "sql": "SELECT date FROM v_risque_book WHERE book = 'TAUX_USD' GROUP BY date ORDER BY SUM(pnl_eur) LIMIT 1",
+  "error": null
+ },
+ "P&L du book TAUX_EUR par mois ?": {
+  "sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl_total FROM v_pnl WHERE book = 'TAUX_EUR' GROUP BY 1 ORDER BY 1 LIMIT 1000",
+  "error": null
+ },
+ "Évolution de la VaR du book TAUX_USD sur les 45 derniers jours": {
+  "sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_USD' AND date > CAST('2026-10-30' AS DATE) - INTERVAL '45' DAY ORDER BY date LIMIT 1000",
+  "error": null
+ },
+ "Évolution du taux EUR 2Y sur les 60 derniers jours": {
+  "sql": "SELECT date, valeur FROM v_marche WHERE serie = 'EUR_2Y' AND date > CAST('2026-10-30' AS DATE) - INTERVAL '60' DAY ORDER BY date LIMIT 1000",
+  "error": null
+ },
+ "P&L cumulé du book FX_SPOT sur le mois de septembre 2026": {
+  "sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE book = 'FX_SPOT' AND date BETWEEN CAST('2026-09-01' AS DATE) AND CAST('2026-09-30' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Nombre de traders du desk Taux ?": {
+  "sql": "SELECT COUNT(DISTINCT trader) FROM v_positions WHERE desk = 'Taux' LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les traders du book FX_SPOT ?": {
+  "sql": "SELECT DISTINCT trader FROM v_positions WHERE book = 'FX_SPOT' LIMIT 1000",
+  "error": null
+ },
+ "Quels sont les instruments du book TAUX_USD ?": {
+  "sql": "SELECT DISTINCT instrument FROM v_positions WHERE book = 'TAUX_USD' LIMIT 1000",
+  "error": null
+ },
+ "Quelle est la première date de la base ?": {
+  "sql": "SELECT MIN(date) FROM v_pnl UNION ALL SELECT MIN(date) FROM v_risque_book UNION ALL SELECT MIN(date) FROM v_limites UNION ALL SELECT MIN(date) FROM v_marche",
+  "error": null
+ },
+ "Combien de jours de bourse en octobre 2026 ?": {
+  "sql": "SELECT COUNT(DISTINCT date) FROM v_pnl WHERE date BETWEEN '2026-10-01' AND '2026-10-31' LIMIT 1000",
+  "error": null
+ },
+ "Taux USD 5Y au dernier jour ?": {
+  "sql": "SELECT valeur FROM v_marche WHERE serie = 'USD_5Y' AND date = (SELECT MAX(date) FROM v_marche) LIMIT 1000",
+  "error": null
+ },
+ "Taux EUR 2Y moyen sur juillet 2026 ?": {
+  "sql": "SELECT AVG(valeur) FROM v_marche WHERE serie = 'EUR_2Y' AND date BETWEEN CAST('2026-07-01' AS DATE) AND CAST('2026-07-31' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "EURUSD moyen sur toute la période ?": {
+  "sql": "SELECT AVG(valeur) FROM v_marche WHERE serie = 'EURUSD' LIMIT 1000",
+  "error": null
+ },
+ "Taux USD 10Y le plus haut de la période ?": {
+  "sql": "SELECT MAX(valeur) FROM v_marche WHERE serie = 'USD_10Y' LIMIT 1000",
+  "error": null
+ },
+ "Pente 10Y-2Y USD le 15 octobre 2026 ?": {
+  "sql": "SELECT (SELECT valeur FROM v_marche WHERE serie = 'USD_10Y' AND date = CAST('2026-10-15' AS DATE)) - (SELECT valeur FROM v_marche WHERE serie = 'USD_2Y' AND date = CAST('2026-10-15' AS DATE)) LIMIT 1000",
+  "error": null
+ },
+ "Pente 5Y-2Y EUR au dernier jour ?": {
+  "sql": "SELECT (SELECT valeur FROM v_marche WHERE serie = 'EUR_5Y' AND date = (SELECT MAX(date) FROM v_marche)) - (SELECT valeur FROM v_marche WHERE serie = 'EUR_2Y' AND date = (SELECT MAX(date) FROM v_marche)) LIMIT 1000",
+  "error": null
+ },
+ "Variation de l'EURUSD entre le 1er septembre et le 30 septembre 2026": {
+  "sql": "SELECT (SELECT valeur FROM v_marche WHERE serie = 'EURUSD' AND date = CAST('2026-09-30' AS DATE)) - (SELECT valeur FROM v_marche WHERE serie = 'EURUSD' AND date = CAST('2026-09-01' AS DATE)) LIMIT 1000",
+  "error": null
+ },
+ "Écart de P&L entre le book TAUX_EUR et le book TAUX_USD sur toute la période": {
+  "sql": "SELECT (SELECT SUM(pnl_eur) FROM v_pnl WHERE book = 'TAUX_EUR') - (SELECT SUM(pnl_eur) FROM v_pnl WHERE book = 'TAUX_USD') LIMIT 1000",
+  "error": null
+ },
+ "Part du P&L total due au desk Change": {
+  "sql": "SELECT (SELECT SUM(pnl_eur) FROM v_pnl WHERE desk = 'Change') / (SELECT SUM(pnl_eur) FROM v_pnl) LIMIT 1000",
+  "error": null
+ },
+ "Écart-type de la VaR du book TAUX_EUR ?": {
+  "sql": "SELECT STDDEV_SAMP(var99_1j_eur) FROM v_risque_book WHERE book = 'TAUX_EUR' LIMIT 1000",
+  "error": null
+ },
+ "Médiane de l'ES du book FX_SPOT ?": {
+  "sql": "SELECT MEDIAN(es975_1j_eur) FROM v_risque_book WHERE book = 'FX_SPOT' LIMIT 1000",
+  "error": null
+ },
+ "Combien de jours le P&L du book TAUX_USD a-t-il été positif ?": {
+  "sql": "SELECT COUNT(*) FROM v_risque_book WHERE book = 'TAUX_USD' AND pnl_eur > 0 LIMIT 1000",
+  "error": null
+ },
+ "Classe les traders par P&L total croissant": {
+  "sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY trader ORDER BY pnl_total ASC LIMIT 1000",
+  "error": null
+ },
+ "Classe les books par VaR moyenne décroissante": {
+  "sql": "SELECT book, AVG(var99_1j_eur) AS var_moyenne FROM v_risque_book GROUP BY book ORDER BY var_moyenne DESC LIMIT 1000",
+  "error": null
+ },
+ "VaR du book FX_SPOT le 2 octobre 2026 ?": {
+  "sql": "SELECT var99_1j_eur FROM v_risque_book WHERE book = 'FX_SPOT' AND date = CAST('2026-10-02' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Utilisation de limite de TAUX_USD le 30 septembre 2026 ?": {
+  "sql": "SELECT utilisation_pct FROM v_limites WHERE book = 'TAUX_USD' AND date = CAST('2026-09-30' AS DATE) LIMIT 1000",
+  "error": null
+ },
+ "Delta FX total du book FX_SPOT au dernier jour ?": {
+  "sql": "SELECT SUM(delta_fx_eur) FROM v_positions WHERE book = 'FX_SPOT' AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Delta FX net par devise au dernier jour ?": {
+  "sql": "SELECT devise, SUM(notionnel) AS notional_net FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY devise LIMIT 1000",
+  "error": null
+ },
+ "ES moyenne en août 2026 par book": {
+  "sql": "SELECT book, AVG(es975_1j_eur) AS es_moyenne FROM v_risque_book WHERE date BETWEEN CAST('2026-08-01' AS DATE) AND CAST('2026-08-31' AS DATE) GROUP BY book LIMIT 1000",
+  "error": null
+ },
+ "Nombre de positions long (notionnel positif) au dernier jour ?": {
+  "sql": "SELECT COUNT(*) FROM v_positions WHERE notionnel > 0 AND date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ },
+ "Notionnel du plus gros long au dernier jour ?": {
+  "sql": "SELECT MAX(notionnel) AS notionnel FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+  "error": null
+ }
+}
