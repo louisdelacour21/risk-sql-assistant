@@ -12,7 +12,7 @@ from .guard import check, Rejected
 MODEL = "qwen3.5:4b"
 CATALOG = yaml.safe_load((Path(__file__).parent / "catalog.yaml").read_text(encoding="utf8"))
 
-# Few-shot pool: verified question -> reference SQL pairs (dev + the first test round, which is now burned for tuning).
+# Few-shot pool: verified question -> reference SQL pairs (dev + test v1 + test v2 (both burned for tuning)).
 # The k most similar ones (entities masked) go into the prompt; a question never sees its own pair.
 _POOL = None
 REFUSAL = ("Quel est le cours de l'action Apple ?", None)
@@ -28,7 +28,7 @@ def pool():
     global _POOL
     if _POOL is None:
         root = Path(__file__).resolve().parents[2] / "eval"
-        _POOL = [(it["question"], it["reference_sql"]) for sp in ("dev", "test") for it in json.loads((root / f"{sp}.json").read_text(encoding="utf8"))]
+        _POOL = [(it["question"], it["reference_sql"]) for sp in ("dev", "test", "test2") for it in json.loads((root / f"{sp}.json").read_text(encoding="utf8"))]
     return _POOL
 
 
@@ -57,7 +57,7 @@ def system_prompt(question=""):
     return f"""Tu traduis une question en français en une requête DuckDB (SELECT unique) sur ces vues, et rien d'autre:
 {views}
 Règles: la date de référence est {CATALOG['reference_date']} ("dernier jour" = max(date)); n'utilise jamais current_date ni now().
-Seules ces vues existent. Les valeurs texte sont sensibles à la casse: desk ∈ 'Taux','Change'; book ∈ 'TAUX_EUR','TAUX_USD','FX_SPOT'; serie ∈ 'EUR_2Y','EUR_5Y','EUR_10Y','USD_2Y','USD_5Y','USD_10Y','EURUSD'. Renvoie seulement les colonnes demandées ("quel trader/jour/book" = une seule colonne). v_pnl est par position: le P&L journalier d'un book est dans v_risque_book.pnl_eur; le P&L total d'une entité = SUM sur v_pnl. "Quels X" = SELECT DISTINCT. Ne filtre jamais sur instrument ou date si la question ne le demande pas. "par X" ou "de chaque X" = GROUP BY X avec X dans le SELECT. "Brut" = somme des valeurs absolues. Sans période précisée, utilise toute la base (pas seulement le dernier jour). Un mois entier = du 1er au dernier jour du mois (octobre 2026 se termine le 31). Mois = BETWEEN premier et dernier jour. Si la question n'est pas répondable avec ces données, mets sql=null et explique dans refus.
+Seules ces vues existent. Les valeurs texte sont sensibles à la casse: desk ∈ 'Taux','Change'; book ∈ 'TAUX_EUR','TAUX_USD','FX_SPOT'; serie ∈ 'EUR_2Y','EUR_5Y','EUR_10Y','USD_2Y','USD_5Y','USD_10Y','EURUSD'. Renvoie seulement les colonnes demandées ("quel trader/jour/book" = une seule colonne). v_pnl est par position: le P&L journalier d'un book est dans v_risque_book.pnl_eur; le P&L total d'une entité = SUM sur v_pnl. "Quels X" = SELECT DISTINCT. Ne filtre jamais sur instrument ou date si la question ne le demande pas. "par X" ou "de chaque X" = GROUP BY X avec X dans le SELECT. "Brut" = somme des valeurs absolues. Sans période précisée, utilise toute la base (pas seulement le dernier jour). Un mois entier = du 1er au dernier jour du mois (octobre 2026 se termine le 31). Mois = BETWEEN premier et dernier jour. "Les N X avec le plus ..." = une seule colonne X (pas la mesure). "Cumulé" = SUM(SUM(mesure)) OVER (ORDER BY date) avec GROUP BY date, une ligne par jour. "Quel jour/date a le meilleur ..." = GROUP BY date puis ORDER BY l'agrégat. "Delta FX" = delta_fx_eur (pas notionnel), "DV01" = dv01_eur. Dates extrêmes de la base ("première/dernière date") = une seule vue, v_positions. Si la question n'est pas répondable avec ces données, mets sql=null et explique dans refus.
 Si tu as dû faire une hypothèse (ex: période non précisée), liste-la dans hypotheses.
 Réponds par un seul objet JSON: {{"sql": ..., "graphique": "ligne"|"barres"|null, "hypotheses": [...], "refus": ...}}.
 Exemples:
