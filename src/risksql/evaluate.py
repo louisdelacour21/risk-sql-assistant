@@ -36,6 +36,13 @@ def same(ref, got, ordered=False):
     return False
 
 
+def same_lenient(ref, got, ordered=False):
+    """Secondary metric: the reference columns appear among the returned columns (extra columns allowed)."""
+    if got.shape[0] != ref.shape[0] or ref.shape[1] > got.shape[1]:
+        return False
+    return any(same(ref, got.iloc[:, list(c)], ordered) for c in itertools.permutations(range(got.shape[1]), ref.shape[1]))
+
+
 def outcome(ref, got, ordered=False):
     """'correct', 'silent_wrong' (ran, wrong answer) or 'declared' (refused / rejected / error: got is None)."""
     if got is None:

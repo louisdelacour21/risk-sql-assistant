@@ -1,0 +1,480 @@
+{
+ "v1": {
+  "n": 70,
+  "strict": {
+   "execution_accuracy": {
+    "rate": 0.5285714285714286,
+    "lo": 0.41321887468325613,
+    "hi": 0.6409512360361571,
+    "k": 37,
+    "n": 70
+   },
+   "silent_wrong": {
+    "rate": 0.45714285714285713,
+    "lo": 0.3457274259756358,
+    "hi": 0.5730174079452441,
+    "k": 32,
+    "n": 70
+   },
+   "declared_failure": {
+    "rate": 0.014285714285714285,
+    "lo": 0.002526246457890298,
+    "hi": 0.0765818713120833,
+    "k": 1,
+    "n": 70
+   }
+  },
+  "lenient": {
+   "execution_accuracy": {
+    "rate": 0.6285714285714286,
+    "lo": 0.5114720115842711,
+    "hi": 0.7322934866530887,
+    "k": 44,
+    "n": 70
+   },
+   "silent_wrong": {
+    "rate": 0.35714285714285715,
+    "lo": 0.2550333927163484,
+    "hi": 0.47411605368658505,
+    "k": 25,
+    "n": 70
+   },
+   "declared_failure": {
+    "rate": 0.014285714285714285,
+    "lo": 0.002526246457890298,
+    "hi": 0.0765818713120833,
+    "k": 1,
+    "n": 70
+   }
+  },
+  "failures": [
+   {
+    "id": "T03",
+    "question": "Quel est le P&L total du desk Change en septembre 2026 ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE desk='Change' AND date BETWEEN DATE '2026-09-01' AND DATE '2026-09-30'",
+    "got_sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl_total FROM v_pnl WHERE desk = 'Change' AND date >= CAST('2026-09-01' AS DATE) AND date <= CAST('2026-09-30' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T04",
+    "question": "Quel est le P&L total du book TAUX_USD en août 2026 ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE book='TAUX_USD' AND date BETWEEN DATE '2026-08-01' AND DATE '2026-08-31'",
+    "got_sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) FROM v_pnl WHERE desk = 'Change' AND date BETWEEN '2026-08-01' AND '2026-08-31' GROUP BY 1 ORDER BY 1 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T12",
+    "question": "Quel est le meilleur P&L journalier du book FX_SPOT ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT max(pnl_eur) FROM v_risque_book WHERE book='FX_SPOT'",
+    "got_sql": "SELECT MAX(pnl_eur) AS meilleur_pnl FROM v_pnl WHERE book = 'FX_SPOT' LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T13",
+    "question": "Quel est le pire P&L journalier tous books confondus ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT min(pnl_eur) FROM v_risque_book",
+    "got_sql": "SELECT date, MIN(pnl_eur) AS pnl_jour_min FROM v_pnl GROUP BY date ORDER BY pnl_jour_min ASC LIMIT 1",
+    "error": null
+   },
+   {
+    "id": "T15",
+    "question": "Combien de positions par book au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book, count(*) FROM v_positions WHERE date=(SELECT max(date) FROM v_positions) GROUP BY book",
+    "got_sql": "SELECT COUNT(*) AS nombre_positions FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T17",
+    "question": "Notionnel brut total du book TAUX_EUR au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT sum(abs(notionnel)) FROM v_positions WHERE book='TAUX_EUR' AND date=(SELECT max(date) FROM v_positions)",
+    "got_sql": "SELECT SUM(ABS(notionnel)) AS notionnel_brut_total FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND instrument IN ('IRS 10Y', 'EURUSD spot') LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T18",
+    "question": "DV01 net total du book TAUX_USD au dernier jour ?",
+    "outcome": "declared",
+    "reference_sql": "SELECT sum(dv01_eur) FROM v_positions WHERE book='TAUX_USD' AND date=(SELECT max(date) FROM v_positions)",
+    "got_sql": "SELECT SUM(p.abs(dv01_eur)) AS dv01_net_total FROM (SELECT position_id, dv01_eur FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND book = 'TAUX_USD') AS p LIMIT 1000",
+    "error": "ValueError: execution error: Binder Error: No function matches the given name and argument types 'abs(STRUCT(position_id VARCHAR, dv01_eur DOUBLE), DOUBLE)'. You might need to add explicit type casts."
+   },
+   {
+    "id": "T19",
+    "question": "Quel trader a le plus gros P&L total ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT trader FROM v_pnl GROUP BY trader ORDER BY sum(pnl_eur) DESC LIMIT 1",
+    "got_sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY trader ORDER BY pnl_total DESC LIMIT 1",
+    "error": null
+   },
+   {
+    "id": "T20",
+    "question": "Quel trader a le plus mauvais P&L total ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT trader FROM v_pnl GROUP BY trader ORDER BY sum(pnl_eur) LIMIT 1",
+    "got_sql": "SELECT trader, SUM(pnl_eur) AS pnl_total FROM v_pnl GROUP BY trader ORDER BY pnl_total ASC LIMIT 1",
+    "error": null
+   },
+   {
+    "id": "T23",
+    "question": "ES moyen par book ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book, avg(es975_1j_eur) FROM v_risque_book GROUP BY book",
+    "got_sql": "SELECT book, AVG(var99_1j_eur) AS mean_var FROM v_risque_book GROUP BY 1 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T24",
+    "question": "VaR maximale par book ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book, max(var99_1j_eur) FROM v_risque_book GROUP BY book",
+    "got_sql": "SELECT MAX(var99_1j_eur) AS var_maxime FROM v_risque_book LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T28",
+    "question": "Quels books ont une VaR moyenne supérieure à 1 million ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book FROM v_risque_book GROUP BY book HAVING avg(var99_1j_eur)>1000000",
+    "got_sql": "SELECT book, AVG(var99_1j_eur) AS var_moyenne FROM v_risque_book GROUP BY book HAVING AVG(var99_1j_eur) > 1000000 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T29",
+    "question": "Quels books ont déjà dépassé 85 % de leur limite ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT DISTINCT book FROM v_limites WHERE utilisation_pct>85",
+    "got_sql": "SELECT book FROM v_limites WHERE utilisation_pct > 85 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T30",
+    "question": "Quel jour la VaR du book TAUX_USD a-t-elle été minimale ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT date FROM v_risque_book WHERE book='TAUX_USD' ORDER BY var99_1j_eur, date LIMIT 1",
+    "got_sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'TAUX_USD' ORDER BY var99_1j_eur ASC LIMIT 1",
+    "error": null
+   },
+   {
+    "id": "T31",
+    "question": "Quel jour le P&L du desk Taux a-t-il été le plus mauvais ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT date FROM v_pnl WHERE desk='Taux' GROUP BY date ORDER BY sum(pnl_eur) LIMIT 1",
+    "got_sql": "SELECT date, MIN(pnl_eur) AS pnl_min FROM v_pnl WHERE desk = 'Taux' GROUP BY date ORDER BY pnl_min ASC LIMIT 1",
+    "error": null
+   },
+   {
+    "id": "T33",
+    "question": "Évolution de la VaR du book FX_SPOT sur les 60 derniers jours",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book='FX_SPOT' AND date>DATE '2026-10-30'-INTERVAL 60 DAY ORDER BY date",
+    "got_sql": "SELECT date, var99_1j_eur FROM v_risque_book WHERE book = 'FX_SPOT' AND date >= CAST('2026-10-30' AS DATE) - INTERVAL '60' DAY ORDER BY date LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T35",
+    "question": "P&L cumulé du desk Taux sur le mois d'octobre 2026",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT date, sum(sum(pnl_eur)) OVER (ORDER BY date) AS cum FROM v_pnl WHERE desk='Taux' AND date>=DATE '2026-10-01' GROUP BY date ORDER BY date",
+    "got_sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) AS pnl_cumule FROM v_pnl WHERE desk = 'Taux' AND date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T36",
+    "question": "Nombre de traders par book ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book, count(DISTINCT trader) FROM v_positions GROUP BY book",
+    "got_sql": "SELECT COUNT(DISTINCT trader) AS nombre_traders FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T38",
+    "question": "Quels traders travaillent sur le book TAUX_USD ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT DISTINCT trader FROM v_positions WHERE book='TAUX_USD'",
+    "got_sql": "SELECT DISTINCT trader FROM v_positions WHERE date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) AND instrument IN ('IRS 10Y', 'IRS 5Y', 'IRS 2Y') AND dv01_eur > 0 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T46",
+    "question": "Pente 10Y-2Y USD au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT (SELECT valeur FROM v_marche WHERE serie='USD_10Y' AND date=(SELECT max(date) FROM v_marche))-(SELECT valeur FROM v_marche WHERE serie='USD_2Y' AND date=(SELECT max(date) FROM v_marche))",
+    "got_sql": "SELECT valeur FROM v_marche WHERE serie = 'USD_10Y' AND date = (SELECT MAX(date) FROM v_marche) LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T47",
+    "question": "Variation du taux EUR 10Y entre le 1er et le 30 octobre 2026",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT (SELECT valeur FROM v_marche WHERE serie='EUR_10Y' AND date=DATE '2026-10-30')-(SELECT valeur FROM v_marche WHERE serie='EUR_10Y' AND date=DATE '2026-10-01')",
+    "got_sql": "SELECT v_marche.serie, v_marche.valeur AS valeur_1er_octobre, v_marche.valeur AS valeur_30_octobre FROM v_marche WHERE serie = 'EUR_10Y' AND date BETWEEN '2026-10-01' AND '2026-10-30' LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T48",
+    "question": "Écart de P&L entre le desk Taux et le desk Change sur toute la période",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT (SELECT sum(pnl_eur) FROM v_pnl WHERE desk='Taux')-(SELECT sum(pnl_eur) FROM v_pnl WHERE desk='Change')",
+    "got_sql": "SELECT (SUM(CASE WHEN desk = 'Taux' THEN ABS(pnl_eur) ELSE 0 END) - SUM(CASE WHEN desk = 'Change' THEN ABS(pnl_eur) ELSE 0 END)) AS ecart_pnl FROM v_pnl LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T49",
+    "question": "Part du P&L total due au trader Martin",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT (SELECT sum(pnl_eur) FROM v_pnl WHERE trader='Martin')/(SELECT sum(pnl_eur) FROM v_pnl)",
+    "got_sql": "SELECT SUM(pnl_eur) FILTER(WHERE trader = 'Martin') / SUM(ABS(pnl_eur)) AS part_pnl FROM v_pnl LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T50",
+    "question": "P&L moyen journalier du book TAUX_EUR ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT avg(pnl_eur) FROM v_risque_book WHERE book='TAUX_EUR'",
+    "got_sql": "SELECT AVG(pnl_eur) AS pnl_moyen_jour FROM v_pnl WHERE book = 'TAUX_EUR' LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T51",
+    "question": "Écart-type du P&L journalier du book FX_SPOT ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT stddev_samp(pnl_eur) FROM v_risque_book WHERE book='FX_SPOT'",
+    "got_sql": "SELECT STDDEV(pnl_eur) FROM v_pnl WHERE book = 'FX_SPOT' LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T53",
+    "question": "Combien de jours le P&L du book TAUX_EUR a-t-il été négatif ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT count(*) FROM v_risque_book WHERE book='TAUX_EUR' AND pnl_eur<0",
+    "got_sql": "SELECT COUNT(*) FROM v_pnl WHERE date BETWEEN CAST('2026-10-01' AS DATE) AND CAST('2026-10-31' AS DATE) AND book = 'TAUX_EUR' AND pnl_eur < 0 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T54",
+    "question": "Combien de jours le P&L total de la banque a-t-il été négatif ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT count(*) FROM (SELECT date FROM v_pnl GROUP BY date HAVING sum(pnl_eur)<0)",
+    "got_sql": "SELECT COUNT(*) AS jours_pnl_negatifs FROM v_pnl WHERE pnl_eur < 0 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T57",
+    "question": "Le jour du pire P&L de FX_SPOT, quelle était sa VaR ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT date, pnl_eur, var99_1j_eur FROM v_risque_book WHERE book='FX_SPOT' ORDER BY pnl_eur LIMIT 1",
+    "got_sql": "SELECT p.date, v.var99_1j_eur FROM (SELECT date, MIN(pnl_eur) AS min_pnl FROM v_pnl WHERE book = 'FX_SPOT' GROUP BY date) AS p JOIN v_risque_book AS v ON p.date = v.date AND v.book = 'FX_SPOT' WHERE NOT p.min_pnl IS NULL ORDER BY p.min_pnl ASC LIMIT 1",
+    "error": null
+   },
+   {
+    "id": "T58",
+    "question": "Quel est le P&L du trader Bernard en juillet 2026 ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE trader='Bernard' AND date BETWEEN DATE '2026-07-01' AND DATE '2026-07-31'",
+    "got_sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, SUM(pnl_eur) FROM v_pnl WHERE trader = 'Bernard' AND date BETWEEN '2026-07-01' AND '2026-07-31' GROUP BY 1 ORDER BY 1 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T59",
+    "question": "Quel est le P&L du trader Petit le dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT sum(pnl_eur) FROM v_pnl WHERE trader='Petit' AND date=(SELECT max(date) FROM v_pnl)",
+    "got_sql": "SELECT trader, SUM(pnl_eur) AS pnl FROM v_pnl WHERE trader = 'Petit' AND date = (SELECT MAX(date) FROM v_pnl) GROUP BY trader LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T67",
+    "question": "Utilisation de limite moyenne en octobre 2026 par book",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book, avg(utilisation_pct) FROM v_limites WHERE date BETWEEN DATE '2026-10-01' AND DATE '2026-10-31' GROUP BY book",
+    "got_sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, AVG(utilisation_pct) FROM v_limites WHERE date >= CAST('2026-10-01' AS DATE) AND date <= CAST('2026-10-31' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T68",
+    "question": "VaR moyenne en septembre 2026 par book",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book, avg(var99_1j_eur) FROM v_risque_book WHERE date BETWEEN DATE '2026-09-01' AND DATE '2026-09-30' GROUP BY book",
+    "got_sql": "SELECT STRFTIME(date, '%Y-%m') AS mois, AVG(var99_1j_eur) AS var_moyenne FROM v_risque_book WHERE date >= CAST('2026-09-01' AS DATE) AND date <= CAST('2026-09-30' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "T70",
+    "question": "Notionnel du plus gros short au dernier jour",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT min(notionnel) FROM v_positions WHERE date=(SELECT max(date) FROM v_positions)",
+    "got_sql": "SELECT instrument, SUM(notionnel) AS notionnel FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) AND position_id IN (SELECT position_id FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) ORDER BY ABS(notionnel) DESC LIMIT 1) GROUP BY instrument LIMIT 1000",
+    "error": null
+   }
+  ],
+  "p50_s": 52.3,
+  "p95_s": 79.9
+ },
+ "v2": {
+  "n": 60,
+  "strict": {
+   "execution_accuracy": {
+    "rate": 0.8833333333333333,
+    "lo": 0.7782121197582913,
+    "hi": 0.9423227935994397,
+    "k": 53,
+    "n": 60
+   },
+   "silent_wrong": {
+    "rate": 0.1,
+    "lo": 0.046642834473884176,
+    "hi": 0.20149464723978774,
+    "k": 6,
+    "n": 60
+   },
+   "declared_failure": {
+    "rate": 0.016666666666666666,
+    "lo": 0.0029481597947862495,
+    "hi": 0.08855129727590064,
+    "k": 1,
+    "n": 60
+   }
+  },
+  "lenient": {
+   "execution_accuracy": {
+    "rate": 0.9333333333333333,
+    "lo": 0.8407464268680283,
+    "hi": 0.9737713012754938,
+    "k": 56,
+    "n": 60
+   },
+   "silent_wrong": {
+    "rate": 0.05,
+    "lo": 0.017149502164395668,
+    "hi": 0.1370051647634852,
+    "k": 3,
+    "n": 60
+   },
+   "declared_failure": {
+    "rate": 0.016666666666666666,
+    "lo": 0.0029481597947862495,
+    "hi": 0.08855129727590064,
+    "k": 1,
+    "n": 60
+   }
+  },
+  "failures": [
+   {
+    "id": "U06",
+    "question": "Quels sont les 2 books avec la plus grande ES au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT book FROM v_risque_book WHERE date=(SELECT max(date) FROM v_risque_book) ORDER BY es975_1j_eur DESC LIMIT 2",
+    "got_sql": "SELECT book, es975_1j_eur FROM v_risque_book WHERE date = (SELECT MAX(date) FROM v_risque_book) ORDER BY es975_1j_eur DESC LIMIT 2",
+    "error": null
+   },
+   {
+    "id": "U07",
+    "question": "Quels sont les 3 traders avec le plus grand notionnel brut au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT trader FROM v_positions WHERE date=(SELECT max(date) FROM v_positions) GROUP BY trader ORDER BY sum(abs(notionnel)) DESC LIMIT 3",
+    "got_sql": "SELECT trader, SUM(ABS(notionnel)) AS notionnel_brut FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY notionnel_brut DESC LIMIT 3",
+    "error": null
+   },
+   {
+    "id": "U19",
+    "question": "Quel trader a le plus gros DV01 absolu au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT trader FROM v_positions WHERE date=(SELECT max(date) FROM v_positions) GROUP BY trader ORDER BY sum(abs(dv01_eur)) DESC LIMIT 1",
+    "got_sql": "SELECT trader, SUM(ABS(dv01_eur)) AS dv01_abs FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY trader ORDER BY dv01_abs DESC LIMIT 1",
+    "error": null
+   },
+   {
+    "id": "U29",
+    "question": "Quel jour le P&L du desk Change a-t-il été le meilleur ?",
+    "outcome": "declared",
+    "reference_sql": "SELECT date FROM v_pnl WHERE desk='Change' GROUP BY date ORDER BY sum(pnl_eur) DESC LIMIT 1",
+    "got_sql": "SELECT date FROM v_pnl WHERE desk = 'Change' ORDER BY SUM(pnl_eur) DESC LIMIT 1",
+    "error": "ValueError: execution error: Binder Error: column \"date\" must appear in the GROUP BY clause or must be part of an aggregate function."
+   },
+   {
+    "id": "U34",
+    "question": "P&L cumulé du book FX_SPOT sur le mois de septembre 2026",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT date, sum(sum(pnl_eur)) OVER (ORDER BY date) AS cum FROM v_pnl WHERE book='FX_SPOT' AND date BETWEEN DATE '2026-09-01' AND DATE '2026-09-30' GROUP BY date ORDER BY date",
+    "got_sql": "SELECT SUM(pnl_eur) FROM v_pnl WHERE book = 'FX_SPOT' AND date BETWEEN CAST('2026-09-01' AS DATE) AND CAST('2026-09-30' AS DATE) LIMIT 1000",
+    "error": null
+   },
+   {
+    "id": "U38",
+    "question": "Quelle est la première date de la base ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT min(date) FROM v_positions",
+    "got_sql": "SELECT MIN(date) FROM v_pnl UNION ALL SELECT MIN(date) FROM v_risque_book UNION ALL SELECT MIN(date) FROM v_limites UNION ALL SELECT MIN(date) FROM v_marche",
+    "error": null
+   },
+   {
+    "id": "U57",
+    "question": "Delta FX net par devise au dernier jour ?",
+    "outcome": "silent_wrong",
+    "reference_sql": "SELECT devise, sum(delta_fx_eur) FROM v_positions WHERE date=(SELECT max(date) FROM v_positions) GROUP BY devise",
+    "got_sql": "SELECT devise, SUM(notionnel) AS notional_net FROM v_positions WHERE date = (SELECT MAX(date) FROM v_positions) GROUP BY devise LIMIT 1000",
+    "error": null
+   }
+  ],
+  "p50_s": 42.4,
+  "p95_s": 64.4
+ },
+ "v3": {
+  "n": 1,
+  "strict": {
+   "execution_accuracy": {
+    "rate": 1.0,
+    "lo": 0.2065493143772374,
+    "hi": 1.0,
+    "k": 1,
+    "n": 1
+   },
+   "silent_wrong": {
+    "rate": 0.0,
+    "lo": 0.0,
+    "hi": 0.7934506856227627,
+    "k": 0,
+    "n": 1
+   },
+   "declared_failure": {
+    "rate": 0.0,
+    "lo": 0.0,
+    "hi": 0.7934506856227627,
+    "k": 0,
+    "n": 1
+   }
+  },
+  "lenient": {
+   "execution_accuracy": {
+    "rate": 1.0,
+    "lo": 0.2065493143772374,
+    "hi": 1.0,
+    "k": 1,
+    "n": 1
+   },
+   "silent_wrong": {
+    "rate": 0.0,
+    "lo": 0.0,
+    "hi": 0.7934506856227627,
+    "k": 0,
+    "n": 1
+   },
+   "declared_failure": {
+    "rate": 0.0,
+    "lo": 0.0,
+    "hi": 0.7934506856227627,
+    "k": 0,
+    "n": 1
+   }
+  },
+  "failures": [],
+  "p50_s": 54.6,
+  "p95_s": 54.6
+ }
+}

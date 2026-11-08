@@ -10,7 +10,10 @@ TIMEOUT_S = 5
 
 def connect(path="data/risk.duckdb"):
     con = duckdb.connect(path, read_only=True, config={"enable_external_access": False})
-    con.execute("SET lock_configuration = true")
+    try:
+        con.execute("SET lock_configuration = true")
+    except duckdb.InvalidInputException:  # same-process reconnect shares the already locked instance
+        pass
     return con
 
 
