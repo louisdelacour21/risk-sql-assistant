@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 import streamlit as st
+import yaml
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -41,6 +42,17 @@ def ollama_up():
         return False
 
 
+S0, SF0 = scores(), safety()
+if S0 and SF0:
+    last = list(S0.values())[-1]
+    a, l = last["strict"]["execution_accuracy"], last["lenient"]["execution_accuracy"]
+    hostile = [x for x in SF0 if x["kind"] == "hostile"]
+    m = st.columns(4)
+    m[0].metric("Correct on 60 unseen questions", f"{a['rate']:.0%}", f"95% CI {a['lo']:.0%}-{a['hi']:.0%}", delta_color="off")
+    m[1].metric("Tolerating extra columns", f"{l['rate']:.0%}", f"{last['strict']['silent_wrong']['k']} wrong answers not flagged", delta_color="off")
+    m[2].metric("Hostile requests stopped", f"{sum(x['passed'] for x in hostile)} / {len(hostile)}", "drop, read file, ATTACH...", delta_color="off")
+    m[3].metric("Median answer time", f"{last['p50_s']:.0f} s", "4B model, CPU, no API", delta_color="off")
+
 live = ollama_up()
 mode = st.sidebar.radio("Mode", ["live", "replay"] if live else ["replay"],
                         help="Live calls the local model. Replay re-runs the SQL recorded during the evaluation, through the same guard.")
@@ -48,7 +60,7 @@ if not live:
     st.sidebar.info("No local model here: replay mode. The 260 recorded evaluation questions and the template questions work; free text does not.")
 st.sidebar.markdown("**Reading the answers.** Always read the SQL. The guard prevents damage, not wrong answers.")
 
-ask, evaluation, playground, about = st.tabs(["Ask", "Evaluation", "SQL guard playground", "How it works"])
+ask, evaluation, data, playground, about = st.tabs(["Ask", "Evaluation", "The data", "SQL guard playground", "How it works"])
 
 EXAMPLES = ["Quelle est la VaR du book FX_SPOT au dernier jour ?", "P&L total par desk ?", "Combien de dépassements de VaR par book ?",
             "Évolution de la VaR du book FX_SPOT sur les 60 derniers jours", "Taux USD 10Y moyen sur août 2026 ?",
@@ -62,6 +74,12 @@ with ask:
     for i, ex in enumerate(EXAMPLES):
         if cols[i % 4].button(ex, key=f"ex{i}", use_container_width=True):
             st.session_state.q = ex
+    if mode == "replay":
+        rec = sorted(json.loads((ROOT / "src" / "risksql" / "replay.json").read_text(encoding="utf8")))
+        pick_q = st.selectbox("...or browse the 260 recorded questions (including the ones the model got wrong)", [""] + rec)
+        if pick_q and pick_q != st.session_state.get("last_pick"):
+            st.session_state.q = st.session_state.last_pick = pick_q
+            st.rerun()
     question = st.text_input("Question", key="q", placeholder="Ex. : Quel est le P&L du trader Martin en septembre 2026 ?")
     if question:
         with st.spinner("Thinking..." if mode == "live" else "Running..."):
@@ -113,6 +131,15 @@ with evaluation:
             with st.expander(f"{f['id']} · {f['outcome']} · {f['question']}"):
                 st.markdown("Reference SQL"); st.code(f["reference_sql"], language="sql")
                 st.markdown("Model SQL"); st.code(f["got_sql"] or f["error"] or "(none)", language="sql")
+
+with data:
+    cat = yaml.safe_load((ROOT / "src" / "risksql" / "catalog.yaml").read_text(encoding="utf8"))
+    st.markdown(f"Five read-only views, synthetic, as of **{cat['reference_date']}**. This catalogue is all the model sees, and all the guard allows.")
+    for name, v in cat["views"].items():
+        with st.expander(f"{name} · {v['description']}"):
+            st.dataframe(pd.DataFrame([{"column": c, "type": t, "meaning": d} for c, (t, d) in v["columns"].items()]), hide_index=True, use_container_width=True)
+            st.caption("Last 5 rows")
+            st.dataframe(connection().execute(f"SELECT * FROM {name} ORDER BY date DESC LIMIT 5").df(), hide_index=True, use_container_width=True)
 
 with playground:
     st.markdown("Paste any SQL. The guard accepts or rejects it, exactly as it does for model output; accepted queries run on the read-only connection.")

@@ -29,6 +29,8 @@ def answer(con, question, mode="live", client=None):
     try:
         out["sql"], out["df"] = executor.run(con, out["sql"])
         out["error"] = None
+        if out["df"].isna().all(axis=None):  # an aggregate over no rows: say so instead of showing a row of NULLs
+            out.update(df=None, error="No data matches this question (the trader, book or period asked for may not exist in this database).")
     except Exception as e:
         out["error"] = f"{type(e).__name__}: {e}"
     return out
