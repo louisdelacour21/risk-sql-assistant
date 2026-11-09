@@ -1,5 +1,7 @@
 # risk-sql-assistant
 
+**Live demo:** https://risk-sql-assistant.streamlit.app/ (replay mode, no model online)
+
 Ask a market-risk database questions in French, get a SQL query you can read, and a number you can check.
 
 A local 4B model (`qwen3.5:4b` through Ollama, no API, no cost) proposes the SQL. It never runs anything itself: every query goes through a SQL guard and a read-only DuckDB connection. The point of the project is the **measurement**: frozen test sets, a result comparator, confidence intervals, a safety battery, and the failures published instead of hidden.
@@ -52,7 +54,7 @@ v1 scored 53 %. Its failures had fixable causes (a misleading few-shot example, 
 
 ## The app
 
-`streamlit run app.py`: **Ask** (example questions, SQL, assumptions, table, chart), **Evaluation** (the table above and every failure with reference and model SQL), **The data** (the five views, columns and sample rows), **SQL guard playground** (paste any SQL and see it accepted or rejected), **How it works**. Live mode needs `ollama pull qwen3.5:4b`; replay mode (used by the online demo) replays the SQL recorded during the evaluation for the 260 recorded evaluation and safety questions through the same guard and read-only executor, and templates still run live. It cannot answer free-form questions.
+`streamlit run app.py`: **Ask** (pick a topic, click one of six featured questions or browse the whole topic with an English gloss and a right/wrong filter, then read the SQL, assumptions, table and chart; the questions stay in French, the language the model is asked in), **Evaluation** (the table above and every failure with reference and model SQL), **The data** (the five views, columns and sample rows), **SQL guard playground** (paste any SQL and see it accepted or rejected), **How it works**. Live mode needs `ollama pull qwen3.5:4b`; replay mode (used by the online demo) replays the SQL recorded during the evaluation for the 260 recorded evaluation and safety questions through the same guard and read-only executor, and templates still run live. It cannot answer free-form questions.
 
 ## Run it
 
@@ -66,4 +68,4 @@ The tests cover the guard (hostile and legitimate SQL), the comparator, the rout
 
 ## Layout
 
-`src/risksql/` catalogue, guard, executor, templates, LLM step, router, scoring · `eval/` question sets and hashes, recorded model runs, scripts · `tests/` · `app.py` Streamlit front end · `data/risk.duckdb` synthetic database (1.6 MB).
+`src/risksql/` catalogue, guard, executor, templates, LLM step, router, scoring · `eval/` question sets and hashes, recorded model runs, scripts · `tests/` · `app.py` Streamlit front end (`eval/make_questions.py` builds `src/risksql/questions.json`: category, English gloss and recorded status of each of the 260 questions) · `data/risk.duckdb` synthetic database (1.6 MB).

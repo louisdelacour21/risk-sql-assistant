@@ -93,10 +93,16 @@ def test_limit_is_forced(con):
     assert len(df) <= 1000
 
 
+def test_every_recorded_question_has_a_category_and_gloss():
+    qs = json.loads((ROOT / "src" / "risksql" / "questions.json").read_text(encoding="utf8"))
+    rec = json.loads((ROOT / "src" / "risksql" / "replay.json").read_text(encoding="utf8"))
+    assert {x["question"] for x in qs} == set(rec)
+    assert all(x["en"] and x["category"] for x in qs)
+
+
 def test_app_renders_in_replay_mode():
     from streamlit.testing.v1 import AppTest
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=90).run()
-    at.radio[0].set_value("replay").run()
     assert not at.exception and len(at.tabs) == 5
     at.button[0].click().run()
     assert not at.exception and len(at.dataframe) >= 1

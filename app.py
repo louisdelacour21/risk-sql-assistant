@@ -11,9 +11,20 @@ sys.path.insert(0, str(ROOT / "src"))
 from risksql import executor, guard, router  # noqa: E402
 
 st.set_page_config(page_title="Risk SQL assistant", layout="wide")
+st.markdown("""<style>
+.block-container{padding-top:2.4rem;max-width:1180px}
+h1{font-weight:750;letter-spacing:-.025em;padding-bottom:.1rem}
+.tagline{font-size:1.08rem;color:#3d5654;margin:0 0 .35rem}
+.chips span{display:inline-block;font-size:.8rem;color:#0f5e57;background:#e3f1ef;border-radius:999px;padding:.12rem .7rem;margin:0 .35rem .35rem 0}
+.stTabs [data-baseweb=tab]{font-size:1rem;padding:.65rem 1.1rem}
+[data-testid=stMetricValue]{font-weight:700}
+footer{visibility:hidden}
+</style>""", unsafe_allow_html=True)
 st.title("Risk SQL assistant")
-st.caption("Ask a market-risk database in French. A local 4B model proposes SQL; a guard and a read-only connection decide what runs. "
-           "Synthetic data: 60 positions, 250 business days, as of 2026-10-30.")
+st.markdown('<p class="tagline">Ask a market-risk database a question in French. A small local model writes the SQL; a guard and a read-only '
+            'connection decide what actually runs.</p>'
+            '<div class="chips"><span>4B model, no API</span><span>SQL guard</span><span>Read-only DuckDB</span>'
+            '<span>Frozen test sets</span><span>Failures published</span><span>Synthetic data</span></div>', unsafe_allow_html=True)
 
 
 @st.cache_resource
@@ -48,10 +59,10 @@ if S0 and SF0:
     a, l = last["strict"]["execution_accuracy"], last["lenient"]["execution_accuracy"]
     hostile = [x for x in SF0 if x["kind"] == "hostile"]
     m = st.columns(4)
-    m[0].metric("Correct on 60 unseen questions", f"{a['rate']:.0%}", f"95% CI {a['lo']:.0%}-{a['hi']:.0%}", delta_color="off")
-    m[1].metric("Tolerating extra columns", f"{l['rate']:.0%}", f"{last['strict']['silent_wrong']['k']} wrong answers not flagged", delta_color="off")
-    m[2].metric("Hostile requests stopped", f"{sum(x['passed'] for x in hostile)} / {len(hostile)}", "drop, read file, ATTACH...", delta_color="off")
-    m[3].metric("Median answer time", f"{last['p50_s']:.0f} s", "4B model, CPU, no API", delta_color="off")
+    m[0].metric("Correct on 60 unseen questions", f"{a['rate']:.0%}", f"95% CI {a['lo']:.0%}-{a['hi']:.0%}", delta_color="off", border=True)
+    m[1].metric("Tolerating extra columns", f"{l['rate']:.0%}", f"{last['strict']['silent_wrong']['k']} wrong answers not flagged", delta_color="off", border=True)
+    m[2].metric("Hostile requests stopped", f"{sum(x['passed'] for x in hostile)} / {len(hostile)}", "drop, read file, ATTACH...", delta_color="off", border=True)
+    m[3].metric("Median answer time", f"{last['p50_s']:.0f} s", "4B model, CPU, no API", delta_color="off", border=True)
 
 live = ollama_up()
 mode = st.sidebar.radio("Mode", ["live", "replay"] if live else ["replay"],
@@ -62,43 +73,64 @@ st.sidebar.markdown("**Reading the answers.** Always read the SQL. The guard pre
 
 ask, evaluation, data, playground, about = st.tabs(["Ask", "Evaluation", "The data", "SQL guard playground", "How it works"])
 
-EXAMPLES = ["Quelle est la VaR du book FX_SPOT au dernier jour ?", "P&L total par desk ?", "Combien de dépassements de VaR par book ?",
-            "Évolution de la VaR du book FX_SPOT sur les 60 derniers jours", "Taux USD 10Y moyen sur août 2026 ?",
-            "Quels sont les 3 books avec la plus grande VaR au dernier jour ?", "P&L cumulé du desk Taux en octobre 2026",
-            "Quel est le cours de l'action Apple ?"]
+QS = json.loads((ROOT / "src" / "risksql" / "questions.json").read_text(encoding="utf8"))
+BY_Q = {x["question"]: x for x in QS}
+CATS = list(dict.fromkeys(x["category"] for x in QS))
+STATUS_LABEL = {"all": "All", "correct": "Answered correctly", "wrong": "Answered wrongly (kept visible)"}
+
+
+def pick(key):
+    if st.session_state[key]:
+        st.session_state.q = st.session_state[key]
+
 
 with ask:
-    if "q" not in st.session_state:
-        st.session_state.q = ""
-    cols = st.columns(4)
-    for i, ex in enumerate(EXAMPLES):
-        if cols[i % 4].button(ex, key=f"ex{i}", use_container_width=True):
-            st.session_state.q = ex
-    if mode == "replay":
-        rec = sorted(json.loads((ROOT / "src" / "risksql" / "replay.json").read_text(encoding="utf8")))
-        pick_q = st.selectbox("...or browse the 260 recorded questions (including the ones the model got wrong)", [""] + rec)
-        if pick_q and pick_q != st.session_state.get("last_pick"):
-            st.session_state.q = st.session_state.last_pick = pick_q
-            st.rerun()
-    question = st.text_input("Question", key="q", placeholder="Ex. : Quel est le P&L du trader Martin en septembre 2026 ?")
+    st.session_state.setdefault("q", "")
+    st.markdown("**1. Pick a topic**")
+    cat = st.radio("Topic", CATS, horizontal=True, label_visibility="collapsed")
+    items = [x for x in QS if x["category"] == cat]
+    step = max(1, len(items) // 6)
+    st.markdown("**2. Click a question**")
+    st.caption("The assistant is asked in French; the button shows an English gloss.")
+    cols = st.columns(3)
+    for i, x in enumerate(items[::step][:6]):
+        if cols[i % 3].button(x["en"], key=f"f{cat}{i}", use_container_width=True):
+            st.session_state.q = x["question"]
+    with st.expander(f"Browse all {len(items)} recorded questions in this topic"):
+        flt = "all"
+        if items[0]["status"] in ("correct", "wrong"):
+            flt = st.radio("Show", list(STATUS_LABEL), format_func=STATUS_LABEL.get, horizontal=True, key=f"flt{cat}")
+        shown = [x for x in items if flt == "all" or x["status"] == flt]
+        key = f"sel{cat}{flt}"
+        st.selectbox(f"{len(shown)} questions (type to search)", [""] + [x["question"] for x in shown], key=key, on_change=pick, args=(key,),
+                     format_func=lambda s: "Select a question..." if not s else BY_Q[s]["en"])
+    st.markdown("**3. Or type your own**" + ("" if mode == "live" else " (live mode only: it needs the local model)"))
+    question = st.text_input("Question", key="q", placeholder="Ex. : Quel est le P&L du trader Martin en septembre 2026 ?", label_visibility="collapsed")
     if question:
-        with st.spinner("Thinking..." if mode == "live" else "Running..."):
-            r = router.answer(connection(), question, mode)
-        left, right = st.columns([3, 1])
-        left.markdown(f"**Route:** `{r['route']}`" + ("  (deterministic, no model)" if str(r["route"]).startswith("template") else ""))
-        if r["error"]:
-            st.warning(f"No answer: {r['error']}")
-        for h in r["hypotheses"]:
-            st.info(f"Assumption: {h}")
-        if r["sql"]:
-            st.code(r["sql"], language="sql")
-            st.caption("This is the SQL after the guard (single SELECT, catalogue views only, LIMIT forced).")
-        if r["df"] is not None:
-            df = r["df"]
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            if df.shape[1] == 2 and len(df) > 2 and str(df.dtypes.iloc[1]).startswith(("float", "int")):
-                c0 = df.columns[0]
-                (st.line_chart if ("date" in c0 or "mois" in c0) else st.bar_chart)(df.set_index(c0))
+        info = BY_Q.get(question)
+        with st.container(border=True):
+            if info:
+                st.caption(f"In English: {info['en']}")
+                if info["status"] == "wrong":
+                    st.warning("In the evaluation the model got this one wrong (it includes runs on earlier prompts, and answers with extra columns that strict scoring rejects). Compare the SQL with the question.")
+                elif info["status"] == "missed":
+                    st.warning("A safety miss: this request should have been declined and was not. See the README.")
+            with st.spinner("Thinking..." if mode == "live" else "Running..."):
+                r = router.answer(connection(), question, mode)
+            st.markdown(f"**Route:** `{r['route']}`" + ("  (deterministic, no model)" if str(r["route"]).startswith("template") else ""))
+            if r["error"]:
+                st.warning(f"No answer: {r['error']}")
+            for h in r["hypotheses"]:
+                st.info(f"Assumption: {h}")
+            if r["sql"]:
+                st.code(r["sql"], language="sql")
+                st.caption("This is the SQL after the guard (single SELECT, catalogue views only, LIMIT forced).")
+            if r["df"] is not None:
+                df = r["df"]
+                st.dataframe(df, use_container_width=True, hide_index=True)
+                if df.shape[1] == 2 and len(df) > 2 and str(df.dtypes.iloc[1]).startswith(("float", "int")):
+                    c0 = df.columns[0]
+                    (st.line_chart if ("date" in c0 or "mois" in c0) else st.bar_chart)(df.set_index(c0))
 
 with evaluation:
     S = scores()
